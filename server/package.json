@@ -1,0 +1,10 @@
+{
+	"name": "Shooter",
+	"version": "0.0.1",
+	"description": "Multiplayer shooter demo",
+	"main": "rollbackserverengine/server.js",
+	"dependencies": {
+		"ws": "0.4.25"
+	},
+	"engine": "node 0.8.x"
+}
