@@ -58,7 +58,8 @@ rollbackclientengine.controllers.PlayController = function(url, Simulation, Comm
 
     //commands
     this.CommandObject = Command;
-    this.outgoingCommand = new this.CommandObject(); //modified by player inputs
+    rollbackgameengine.giveID(this.CommandObject); //id for pooling usage on the object itself
+    this.outgoingCommand = this._getNewCommand(); //modified by player inputs
     this.commands = new Array();
     this.trueCommands = new Array();
     this.perceivedCommands = new Array();
@@ -215,6 +216,16 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
 
             //increment true command
             this.trueCommands[i] = c;
+
+            //pool unused commands
+            while(this.commands[i].head !== c) { //why is this if statement failing?
+                //debug log
+                if(!this.logsDisabled) {
+                    console.log("REMOVING COMMAND " + this.commands[i].head.obj.id + " FOR P" + i + " POOLID " + this.CommandObject);
+                }
+                //pop and pool
+                rollbackgameengine.pool.add(this.CommandObject, this.commands[i].pop());
+            }
         }
 
         //debug log
@@ -416,7 +427,7 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
         }
 
         //get message
-        message = rollbackgameengine.pool.acquire(byteSize);
+        message = rollbackgameengine.pool.acquire("msg"+byteSize);
         if(!message) {
             message = new rollbackgameengine.networking.OutgoingMessage(byteSize);
         }
@@ -424,7 +435,7 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
         //do not send frame
 
         //get message
-        message = rollbackgameengine.pool.acquire(this.outgoingByteSize);
+        message = rollbackgameengine.pool.acquire("msg"+this.outgoingByteSize);
         if(!message) {
             message = new rollbackgameengine.networking.OutgoingMessage(this.outgoingByteSize);
         }
@@ -433,8 +444,11 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
     //reset
     message.reset();
 
-    //clone command
-    var c = this.outgoingCommand.clone();
+    //create command
+    var c = this._getNewCommand();
+
+    //load command
+    c.loadFromCommand(this.outgoingCommand);
 
     //set frame
     if(this.shouldSendFrame) {
@@ -455,8 +469,11 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
     if(!this.shouldSendFrame) {
         //loop
         for(var i=1; i<this.frameDifference; i++) {
-            //clone command
-            c = c.clone();
+            //create command
+            c = this._getNewCommand();
+
+            //load command
+            c.loadFromCommand(this.outgoingCommand);
 
             //debug logging
             if(!this.logsDisabled) {
@@ -492,7 +509,7 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
     this.connection.send(message);
 
     //pool message
-    rollbackgameengine.pool.add(message.byteSize, message);
+    rollbackgameengine.pool.add("msg"+message.byteSize, message);
 }
 
 rollbackclientengine.controllers.PlayController.prototype.update = function() {
@@ -570,7 +587,7 @@ rollbackclientengine.controllers.PlayController.prototype.onConnect = function()
     this.connection.send(readyMessage);
 
     //add to pool
-    rollbackgameengine.pool.add(1, readyMessage);
+    rollbackgameengine.pool.add("msg1", readyMessage);
 }
 
 rollbackclientengine.controllers.PlayController.prototype.onReceivedText = function(text) {
@@ -602,16 +619,20 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
                 for(var i=0; i<this.frameDelay; i++) {
                     //console.log("p" + this.player + " dummy " + i + " command");
 
+                    //create command
+                    c = this._getNewCommand();
+
                     //debug logging
-                    c = new this.CommandObject();
                     c.id = this.commandID[this.player]++;
+
+                    //add command
                     this.commands[this.player].add(c);
+
+                    //debug logging
                     if(!this.logsDisabled) {
                         console.log("Storing Default Own Command");
                         this.displayCommands();
                     }
-
-                    //this.commands[this.player].add(new this.CommandObject());
                 }
 
                 //delay
@@ -629,16 +650,20 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
 
                 //default enemy commands
                 for(var i=0, j=enemyDelay; i<j; i++) {
+                    //create command
+                    c = this._getNewCommand();
+
                     //debug logging
-                    c = new this.CommandObject();
                     c.id = this.commandID[enemyPlayer]++;
+
+                    //add
                     this.commands[enemyPlayer].add(c);
+
+                    //debug logging
                     if(!this.logsDisabled) {
                         console.log("Storing Default Enemy Command");
                         this.displayCommands();
                     }
-
-                    //this.commands[enemyPlayer].add(new this.CommandObject());
                 }
             }
         }
@@ -664,7 +689,10 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
         }
 
         //get command
-        var c = new this.CommandObject(incomingMessage);
+        var c = this._getNewCommand();
+
+        //load command
+        c.loadFromMessage(incomingMessage);
 
         //set player
         if(this.shouldSendPlayer) {
@@ -698,8 +726,11 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
         if(!this.shouldSendFrame) {
             //loop
             for(var i=1; i<receivedFrameDifference; i++) {
-                //clone command
-                c = c.clone();
+                //create command
+                c = this._getNewCommand();
+
+                //load command
+                c.loadFromMessage(incomingMessage);
 
                 //debug logging
                 if(!this.logsDisabled) {
@@ -731,6 +762,28 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
 
 rollbackclientengine.controllers.PlayController.prototype.onDisconnect = function() {
     this.started = false;
+}
+
+//command helper - private
+
+rollbackclientengine.controllers.PlayController.prototype._getNewCommand = function() {
+    //create
+    var c = rollbackgameengine.pool.acquire(this.CommandObject);
+    if(!c) {
+        //debug logging
+        if(!this.logsDisabled) {
+            console.log("CREATING NEW COMMAND");
+        }
+        c = new this.CommandObject();
+    }else {
+        //debug logging
+        if(!this.logsDisabled) {
+            console.log("USING POOLED COMMAND");
+        }
+    }
+
+    //return
+    return c;
 }
 
 //debug logging
