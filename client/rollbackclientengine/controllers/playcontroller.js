@@ -33,7 +33,7 @@
 //frame delay must be between 0 and 127 inclusive
 rollbackclientengine.controllers.PlayController = function(url, Simulation, Command, frameRate, frameDelay, playerCount, minimumUpdateFrame) {
     //debug logging
-    this.error = true; //false
+    this.logsDisabled = false; //false
     this.commandID = new Array();
 
     //frame rate default
@@ -43,7 +43,7 @@ rollbackclientengine.controllers.PlayController = function(url, Simulation, Comm
 
     //frame delay default
     if(typeof frameDelay === 'undefined') {
-        frameDelay = 2;
+        frameDelay = 2; //2
     }
 
     //player count default
@@ -74,8 +74,8 @@ rollbackclientengine.controllers.PlayController = function(url, Simulation, Comm
 
     //frame delay
     this.frameDelay = frameDelay + 1;
-    this.gameDelay = true;
-    this.perceivedSimulation.frame -= this.frameDelay; //causes it to start late
+    //this.gameDelay = true;
+    //this.perceivedSimulation.frame -= this.frameDelay; //causes it to start late - doesn't do anything as true world rollback just ignores it
 
     //todo - consider isTrueSimulation boolean
 
@@ -146,10 +146,12 @@ rollbackclientengine.controllers.PlayController = function(url, Simulation, Comm
 rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation = function() {
     //todo - command lookahead check
 
+    /*
     //determine game delay is over
     if(this.gameDelay) {
         return;
     }
+    */
 
     //determine frame to loop to
     if(this.shouldSendPlayer) {
@@ -164,7 +166,7 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
     }
 
     //debug log
-    if(!this.error) {
+    if(!this.logsDisabled) {
         console.log(">FUNCTION UPDATE TRUE SIM");
     }
 
@@ -196,12 +198,12 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
                 alert("p" + this.player + " lf" + leastFrame + " tf" + this.trueSimulation.frame + " > wtf no true command for " + i + " in 2 player mode?");
 
                 //debug logging
-                this.error = true;
+                this.logsDisabled = true;
                 continue;
             }
 
             //debug log
-            if(!this.error) {
+            if(!this.logsDisabled) {
                 console.log("p" + i + " true command " + c.obj.id);
             }
 
@@ -213,7 +215,7 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
         }
 
         //debug log
-        if(!this.error) {
+        if(!this.logsDisabled) {
             console.log("UPDATING TRUE " + this.trueSimulation.frame);
         }
 
@@ -225,7 +227,7 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
     var currentFrame = this.perceivedSimulation.frame;
 
     //debug log
-    if(!this.error) {
+    if(!this.logsDisabled) {
         console.log("rolling back from " + this.perceivedSimulation.frame + " to " + this.trueSimulation.frame);
     }
 
@@ -263,7 +265,7 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
             }
 
             //debug log
-            if(!this.error) {
+            if(!this.logsDisabled) {
                 console.log("p" + i + " perceived command " + c.obj.id);
             }
 
@@ -275,7 +277,7 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
         }
 
         //debug log
-        if(!this.error) {
+        if(!this.logsDisabled) {
             console.log("UPDATING PERCEIVED " + this.perceivedSimulation.frame);
         }
 
@@ -293,7 +295,7 @@ rollbackclientengine.controllers.PlayController.prototype.updatePerceivedSimulat
     }
 
     //debug log
-    if(!this.error) {
+    if(!this.logsDisabled) {
         console.log(">FUNCTION UPDATE PERCEIVED SIM");
     }
 
@@ -331,19 +333,17 @@ rollbackclientengine.controllers.PlayController.prototype.updatePerceivedSimulat
             this.perceivedSimulation.execute(i, c.obj);
 
             //debug log
-            if(!this.error) {
+            if(!this.logsDisabled) {
                 console.log("p" + i + " perceived command " + c.obj.id);
             }
 
             //increment perceived command
             this.perceivedCommands[i] = c;
-
-            //console.log("perceived executed player " + i + " command " + c.obj);
         }
 
         //debug log
-        if(!this.error) {
-            console.log("UPDATING PERCEIVED " + this.perceivedSimulation.frame);
+        if(!this.logsDisabled) {
+            console.log("UPDATING PERCEIVED " + this.perceivedSimulation.frame + " WITH FRAME DIFF " + this.frameDifference);
         }
 
         //update perceived simulation
@@ -366,7 +366,7 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
     }
 
     //debug log
-    if(!this.error) {
+    if(!this.logsDisabled) {
         console.log(">FUNCTION SEND INPUTS");
     }
 
@@ -397,7 +397,7 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
         byteSize = Math.ceil(byteSize);
 
         //debug logging
-        if(!this.error) {
+        if(!this.logsDisabled) {
             console.log("SKIPPED WITH FRAME DIFF " + this.frameDifference + " AND FRAME BIT SIZE " + frameBitSize + " AND TOTAL BYTE SIZE " + byteSize);
         }
 
@@ -428,7 +428,7 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
     }
 
     //debug logging
-    if(!this.error) {
+    if(!this.logsDisabled) {
         c.id = this.commandID[this.player]++;
         c.frame = this.perceivedSimulation.frame;
     }
@@ -445,7 +445,7 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
             c = c.clone();
 
             //debug logging
-            if(!this.error) {
+            if(!this.logsDisabled) {
                 c.id = this.commandID[this.player]++;
                 c.frame = this.perceivedSimulation.frame;
                 console.log("ADD CLONED COMMAND");
@@ -457,7 +457,7 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
     }
 
     //debug logging
-    if(!this.error) {
+    if(!this.logsDisabled) {
         console.log("Storing Own Command");
         this.displayCommands();
     }
@@ -468,7 +468,7 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
     //add frame to message
     if(this.frameDifference > 1) {
         //debug log
-        if(!this.error) {
+        if(!this.logsDisabled) {
             console.log("Adding final unsigned integer");
         }
         message.addFinalUnsignedInteger(this.frameDifference-1);
@@ -487,11 +487,18 @@ rollbackclientengine.controllers.PlayController.prototype.update = function() {
         return;
     }
 
+    /*
     //determine game delay is over
     if(this.gameDelay) {
         if(this.perceivedSimulation.frame >= 0 && this.trueSimulation.frame <= this.perceivedSimulation.frame) {
             this.gameDelay = false;
         }
+    }
+    */
+
+    //debug logging
+    if(this.perceivedSimulation.frame > 100) {
+        this.logsDisabled = true;
     }
 
     //reset frame difference
@@ -530,7 +537,12 @@ rollbackclientengine.controllers.PlayController.prototype.render = function(canv
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         //render
+        //this.trueSimulation.render(ctx); //debug
         this.perceivedSimulation.render(ctx);
+
+        if(!this.logsDisabled) {
+            console.log(">RENDERING WITH TRUE " + this.trueSimulation.frame + " PERCEIVED " + this.perceivedSimulation.frame);
+        }
     }
     this.shouldRender = false;
 }
@@ -580,7 +592,7 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
                     c = new this.CommandObject();
                     c.id = this.commandID[this.player]++;
                     this.commands[this.player].add(c);
-                    if(!this.error) {
+                    if(!this.logsDisabled) {
                         console.log("Storing Default Own Command");
                         this.displayCommands();
                     }
@@ -607,7 +619,7 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
                     c = new this.CommandObject();
                     c.id = this.commandID[enemyPlayer]++;
                     this.commands[enemyPlayer].add(c);
-                    if(!this.error) {
+                    if(!this.logsDisabled) {
                         console.log("Storing Default Enemy Command");
                         this.displayCommands();
                     }
@@ -676,7 +688,7 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
                 c = c.clone();
 
                 //debug logging
-                if(!this.error) {
+                if(!this.logsDisabled) {
                     c.id = this.commandID[player]++;
                     console.log("ADD CLONED COMMAND");
                 }
@@ -692,17 +704,14 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
             //this.lastReceivedFrame[player] += ;
         }else {
             //increment
-            this.lastReceivedFrame++;
+            this.lastReceivedFrame += receivedFrameDifference;
         }
 
         //debug logging
-        if(!this.error) {
+        if(!this.logsDisabled) {
             console.log("Received Enemy Command");
             this.displayCommands();
         }
-
-        //execute it - WTF WHY AM I DOING THIS I SHOULDNT BE
-        //this.perceivedSimulation.execute(player, c);
     }
 }
 
@@ -713,6 +722,8 @@ rollbackclientengine.controllers.PlayController.prototype.onDisconnect = functio
 //debug logging
 
 rollbackclientengine.controllers.PlayController.prototype.displayCommands = function() {
+    return;
+
     //declare variables
     var c = null;
 

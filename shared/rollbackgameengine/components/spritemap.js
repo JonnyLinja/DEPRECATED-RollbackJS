@@ -13,7 +13,7 @@ rollbackgameengine.components.Spritemap.prototype.init = function(imagesrc) {
 	//image
 	this.image = new Image();
 	this.image.src = imagesrc;
-
+	
 	//spritesheet
 	this.spriteSheet = new createjs.SpriteSheet({
     	// image to use
@@ -46,6 +46,8 @@ rollbackgameengine.components.Spritemap.prototype.render = function(ctx) {
 	this.bmpAnimation.y = this.entity.y;
 	this.bmpAnimation.draw(ctx, true);
 	ctx.restore();
+
+	//ctx.drawImage(this.image, this.entity.x, this.entity.y);
 }
 
 rollbackgameengine.components.Spritemap.prototype.rollback = function(component) {
