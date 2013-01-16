@@ -134,6 +134,9 @@ rollbackclientengine.controllers.PlayController = function(url, Simulation, Comm
     //started
     this.started = false;
 
+    //rollback
+    this.shouldRollback = false;
+
     //render
     this.shouldRender = false;
 
@@ -222,6 +225,15 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
         //update true simulation
         this.trueSimulation.update();
     }while(this.trueSimulation.frame <= leastFrame);
+
+    //determine needed
+    if(!this.shouldRollback) {
+        //exit
+        return;
+    }else {
+        //reset
+        this.shouldRollback = false;
+    }
 
     //save frame
     var currentFrame = this.perceivedSimulation.frame;
@@ -324,8 +336,10 @@ rollbackclientengine.controllers.PlayController.prototype.updatePerceivedSimulat
                 //skip
                 continue;
             }else if(!c) {
+                //set boolean
+                this.shouldRollback = true;
+
                 //skip
-                //console.log("skip perceived command for player " + i);
                 continue;
             }
 
