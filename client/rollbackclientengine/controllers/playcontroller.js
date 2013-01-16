@@ -221,7 +221,7 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
             while(this.commands[i].head !== c) { //why is this if statement failing?
                 //debug log
                 if(!this.logsDisabled) {
-                    console.log("REMOVING COMMAND " + this.commands[i].head.obj.id + " FOR P" + i + " POOLID " + this.CommandObject);
+                    console.log("REMOVING COMMAND " + this.commands[i].head.obj.id + " FOR P" + i);
                 }
                 //pop and pool
                 rollbackgameengine.pool.add(this.CommandObject, this.commands[i].pop());
@@ -725,21 +725,21 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
         //duplicate
         if(!this.shouldSendFrame) {
             //loop
-            for(var i=1; i<receivedFrameDifference; i++) {
+            for(var i=1, duplicate=null; i<receivedFrameDifference; i++) {
                 //create command
-                c = this._getNewCommand();
+                duplicate = this._getNewCommand();
 
                 //load command
-                c.loadFromMessage(incomingMessage);
+                duplicate.loadFromCommand(c);
 
                 //debug logging
                 if(!this.logsDisabled) {
-                    c.id = this.commandID[player]++;
+                    duplicate.id = this.commandID[player]++;
                     console.log("ADD CLONED COMMAND");
                 }
 
                 //store command
-                this.commands[player].add(c);
+                this.commands[player].add(duplicate);
             }
         }
 
@@ -789,7 +789,7 @@ rollbackclientengine.controllers.PlayController.prototype._getNewCommand = funct
 //debug logging
 
 rollbackclientengine.controllers.PlayController.prototype.displayCommands = function() {
-    return;
+    //return;
 
     //declare variables
     var c = null;
@@ -798,12 +798,12 @@ rollbackclientengine.controllers.PlayController.prototype.displayCommands = func
     for(var i=1; i<=this.playerCount; i++) {
         c = this.commands[i].head;
         while(c) {
-            if(c.obj === this.trueCommands[i]) {
-                console.log("p" + i + " cmd " + c.obj.id + " (t)");
-            }else if(c.obj === this.perceivedCommands[i]) {
-                console.log("p" + i + " cmd " + c.obj.id + " (p)");
+            if(c === this.trueCommands[i]) {
+                console.log("p" + i + " cmd " + c.obj.id + " " + c.obj + " (t)");
+            }else if(c === this.perceivedCommands[i]) {
+                console.log("p" + i + " cmd " + c.obj.id + " " + c.obj + " (p)");
             }else {
-                console.log("p" + i + " cmd " + c.obj.id);
+                console.log("p" + i + " cmd " + c.obj.id + " " + c.obj);
             }
 
             //increment
