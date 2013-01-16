@@ -3,7 +3,6 @@ RollbackJS
 
 TODO:
 
-- Command pooling after command is used in true
 - Debug choppiness, perhaps with profiling and/or timing individual functions
 - Replace EaselJS with my own rendering system
 - Figure out system for canvas layers (background and boulders should have their own canvases)
