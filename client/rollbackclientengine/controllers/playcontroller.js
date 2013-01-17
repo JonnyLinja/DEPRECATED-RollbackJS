@@ -33,8 +33,9 @@
 //frame delay must be between 0 and 127 inclusive
 rollbackclientengine.controllers.PlayController = function(url, Simulation, Command, frameRate, frameDelay, playerCount, minimumUpdateFrame) {
     //debug logging
-    this.logsDisabled = false; //false
+    this.logsDisabled = true; //false
     this.commandID = new Array();
+    this.framesSkipped = 0;
 
     //frame rate default
     if(typeof frameRate === 'undefined') {
@@ -574,6 +575,14 @@ rollbackclientengine.controllers.PlayController.prototype.render = function(canv
         if(!this.logsDisabled) {
             console.log(">RENDERING WITH TRUE " + this.trueSimulation.frame + " PERCEIVED " + this.perceivedSimulation.frame);
         }
+
+        //debug logging
+        if(this.frameDifference > 1) {
+            this.framesSkipped += this.frameDifference-1;
+        }
+        ctx.font = "normal 36px Verdana";
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillText(this.framesSkipped + " frames skipped", 50, 50);
     }
     this.shouldRender = false;
 }

@@ -1,9 +1,35 @@
-
 //
 // GONNA BE SOME DIRTY CODE
 // DON'T REALLY CARE - JUST WANT TO TEST PLAYCONTROLLER
 // LATER CLEAN IT UP
+// MAY WANT TO ADD SCENES/STAGES AND THE PRIMARY GAME LOOP AND STUFF TO CLIENT ENGINE ANYWAY
 //
+
+//game loop helper
+(function() {
+    var lastTime = 0;
+    var vendors = ['ms', 'moz', 'webkit', 'o'];
+    for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+        window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+        window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame']
+                                   || window[vendors[x]+'CancelRequestAnimationFrame'];
+    }
+ 
+    if (!window.requestAnimationFrame)
+        window.requestAnimationFrame = function(callback, element) {
+            var currTime = new Date().getTime();
+            var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+            var id = window.setTimeout(function() { callback(currTime + timeToCall); },
+              timeToCall);
+            lastTime = currTime + timeToCall;
+            return id;
+        };
+ 
+    if (!window.cancelAnimationFrame)
+        window.cancelAnimationFrame = function(id) {
+            clearTimeout(id);
+        };
+}());
 
 //canvas
 var canvas = null;
@@ -13,7 +39,6 @@ var canvas = null;
 var controller = new rollbackclientengine.controllers.PlayController('ws://shooter-5551.onmodulus.net', shooter.GameSimulation, shooter.Command); //live
 
 //keydown
-//function handleKeyUp(e) {
 document.onkeydown = function(e) {
 	//console.log("handle keydown");
 
@@ -44,7 +69,6 @@ document.onkeydown = function(e) {
 }
 
 //keyup
-//function handleKeyUp(e) {
 document.onkeyup = function(e) {
 	//console.log("handle key up");
 
@@ -75,7 +99,11 @@ document.onkeyup = function(e) {
 }
 
 //update loop
-function tick() {
+function loop() {
+	//request anim frame
+    requestAnimationFrame(loop);
+
+    //set canvas once able
 	if(typeof canvas === 'undefined' || !canvas) {
 		var temp = document.getElementById("testCanvas");
 		if(temp) {
@@ -83,11 +111,10 @@ function tick() {
 		}
 	}
 
+	//update and render
 	if(canvas) {
 		controller.update();
 		controller.render(canvas);
 	}
 }
-createjs.Ticker.addListener(window);
-createjs.Ticker.useRAF = true;
-createjs.Ticker.setFPS(30);
+loop();
