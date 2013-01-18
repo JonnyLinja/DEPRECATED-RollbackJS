@@ -129,7 +129,6 @@ rollbackclientengine.controllers.PlayController = function(url, Simulation, Comm
     this.outgoingByteSize = Math.ceil(this.outgoingByteSize);
 
     //timing
-    //this.date = new Date();
     this.currentTime = null;
     this.nextFrameTime = null;
 
@@ -537,7 +536,7 @@ rollbackclientengine.controllers.PlayController.prototype.update = function() {
     this.frameDifference = 0;
 
     //current time
-    this.currentTime = new Date().getTime();//this.date.getTime();
+    this.currentTime = Date.now();
 
     //updates
     this.updateTrueSimulation();
@@ -578,7 +577,7 @@ rollbackclientengine.controllers.PlayController.prototype.render = function(canv
 
         //debug logging
         if(this.frameDifference > 1) {
-            this.framesSkipped += this.frameDifference-1;
+            this.framesSkipped += (this.frameDifference-1);
         }
         ctx.font = "normal 36px Verdana";
         ctx.fillStyle = "#FFFFFF";
@@ -678,7 +677,7 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
         }
 
         //set next frame time
-        this.nextFrameTime = new Date().getTime() + this.frameRate;//this.date.getTime() + this.frameRate;
+        this.nextFrameTime = Date.now() + this.frameRate;
 
         //console.log("next frame time set to " + this.nextFrameTime);
 

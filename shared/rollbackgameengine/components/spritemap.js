@@ -13,7 +13,7 @@ rollbackgameengine.components.Spritemap.prototype.init = function(imagesrc) {
 	//image
 	this.image = new Image();
 	this.image.src = imagesrc;
-	
+	/*
 	//spritesheet
 	this.spriteSheet = new createjs.SpriteSheet({
     	// image to use
@@ -33,21 +33,23 @@ rollbackgameengine.components.Spritemap.prototype.init = function(imagesrc) {
 
 	//start frame
 	this.bmpAnimation.currentFrame = 0;
+	*/
 }
 
 rollbackgameengine.components.Spritemap.prototype.update = function() {
-	this.bmpAnimation._tick();
+	//this.bmpAnimation._tick();
 }
 
 rollbackgameengine.components.Spritemap.prototype.render = function(ctx) {
+	/*
 	ctx.save();
 	this.bmpAnimation.updateContext(ctx);
 	this.bmpAnimation.x = this.entity.x;
 	this.bmpAnimation.y = this.entity.y;
 	this.bmpAnimation.draw(ctx, true);
 	ctx.restore();
-
-	//ctx.drawImage(this.image, this.entity.x, this.entity.y);
+	*/
+	ctx.drawImage(this.image, 0, 0, this.entity.width, this.entity.height, this.entity.x, this.entity.y, this.entity.width, this.entity.height);
 }
 
 rollbackgameengine.components.Spritemap.prototype.rollback = function(component) {
