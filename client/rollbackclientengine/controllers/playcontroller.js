@@ -218,7 +218,7 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
             this.trueCommands[i] = c;
 
             //pool unused commands
-            while(this.commands[i].head !== c) { //why is this if statement failing?
+            while(this.commands[i].head !== c && this.commands[i].head !== this.perceivedCommands[i]) { //why is this if statement failing?
                 //debug log
                 if(!this.logsDisabled) {
                     console.log("REMOVING COMMAND " + this.commands[i].head.obj.id + " FOR P" + i);
@@ -581,7 +581,7 @@ rollbackclientengine.controllers.PlayController.prototype.render = function(canv
         }
         ctx.font = "normal 36px Verdana";
         ctx.fillStyle = "#FFFFFF";
-        ctx.fillText(this.framesSkipped + " frames skipped", 50, 50);
+        ctx.fillText(this.framesSkipped + " frames skipped!!", 50, 50);
     }
     this.shouldRender = false;
 }
@@ -784,6 +784,9 @@ rollbackclientengine.controllers.PlayController.prototype._getNewCommand = funct
         }
         c = new this.CommandObject();
     }else {
+        //reset
+        c.reset();
+
         //debug logging
         if(!this.logsDisabled) {
             console.log("USING POOLED COMMAND");

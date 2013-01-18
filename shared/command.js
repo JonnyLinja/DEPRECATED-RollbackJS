@@ -6,6 +6,12 @@
 //==================================================//
 
 shooter.Command = function() {
+	this.reset();
+}
+
+//reset
+
+shooter.Command.prototype.reset = function() {
 	//booleans
 	this.w = false;
 	this.a = false;
@@ -46,5 +52,5 @@ shooter.Command.prototype.addDataToMessage = function(outgoingmessage) {
 //helper
 
 shooter.Command.prototype.toString = function() {
-	return this.frame + "> " + this.w + ", " + this.a + ", " + this.s + ", " + this.d;
+	return "<" + this.w + ", " + this.a + ", " + this.s + ", " + this.d + ">";
 }
