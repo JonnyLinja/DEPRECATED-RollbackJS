@@ -64,7 +64,7 @@ rollbackclientengine.controllers.PlayController = function(url, Simulation, Comm
     this.commands = new Array();
     this.trueCommands = new Array();
     this.perceivedCommands = new Array();
-    for(var i=1; i<=playerCount; i++) {
+    for(var i=0; i<playerCount; i++) {
         this.commands[i] = new rollbackgameengine.datastructures.SinglyLinkedList();
         this.trueCommands[i] = null;
         this.perceivedCommands[i] = null;
@@ -94,7 +94,7 @@ rollbackclientengine.controllers.PlayController = function(url, Simulation, Comm
     this.connection.onDisconnect = function(m) { this.delegate.onDisconnect.call(this.delegate) };
 
     //player
-    this.player = 0; //will be set by server
+    this.player = null; //will be set by server
 
     //player count - if use default 2, doesn't store player
     this.shouldSendPlayer = playerCount > 2;
@@ -179,7 +179,7 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
     //loop update true
     do {
         //loop through player commands
-        for(var i=1, c=null; i<=this.playerCount; i++) {
+        for(var i=0, c=null; i<this.playerCount; i++) {
             //get command node
             c = this.trueCommands[i];
             if(!c) {
@@ -258,14 +258,14 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
     this.perceivedSimulation.rollback(this.trueSimulation);
 
     //rollback command positions
-    for(var i=1; i<=this.playerCount; i++) {
+    for(var i=0; i<this.playerCount; i++) {
         this.perceivedCommands[i] = this.trueCommands[i];
     }
 
     //loop update perceived back to current
     while(this.perceivedSimulation.frame < currentFrame) {
         //loop through player commands
-        for(var i=1, c=null; i<=this.playerCount; i++) {
+        for(var i=0, c=null; i<this.playerCount; i++) {
             //get command node
             c = this.perceivedCommands[i];
             if(!c) {
@@ -328,7 +328,7 @@ rollbackclientengine.controllers.PlayController.prototype.updatePerceivedSimulat
     //loop update perceived
     do {
         //loop through player commands
-        for(var i=1, c=null; i<=this.playerCount; i++) {
+        for(var i=0, c=null; i<this.playerCount; i++) {
             //get command node
             c = this.perceivedCommands[i];
             if(!c) {
@@ -611,8 +611,8 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
     if(!this.started) {
         //start command
 
-        //set player
-        this.player = incomingMessage.nextUnsignedInteger(1)+1;
+        //set player - todo - determine bit size based on player count
+        this.player = incomingMessage.nextUnsignedInteger(1);
 
         //deal with frame delay
         if(!this.shouldSendFrame) {
@@ -620,8 +620,8 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
                 //todo - delay for multiple players
             }else {
                 //debug log
+                this.commandID[0] = 0;
                 this.commandID[1] = 0;
-                this.commandID[2] = 0;
 
                 //your default commands
                 for(var i=0; i<this.frameDelay; i++) {
@@ -650,10 +650,10 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
                 this.lastReceivedFrame = enemyDelay-1;
 
                 //determine enemy player
-                if(this.player === 1) {
-                    var enemyPlayer = 2;
-                }else {
+                if(this.player === 0) {
                     var enemyPlayer = 1;
+                }else {
+                    var enemyPlayer = 0;
                 }
 
                 //default enemy commands
@@ -707,12 +707,12 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
             //todo - use popped player variable
         }else {
             //only 2 players
-            if(this.player === 1) {
+            if(this.player === 0) {
                 //set to p2
-                player = 2;
+                player = 1;
             }else {
                 //set to p1
-                player = 1;
+                player = 0;
             }
         }
 
@@ -806,7 +806,7 @@ rollbackclientengine.controllers.PlayController.prototype.displayCommands = func
     var c = null;
 
     //loop
-    for(var i=1; i<=this.playerCount; i++) {
+    for(var i=0; i<this.playerCount; i++) {
         c = this.commands[i].head;
         while(c) {
             if(c === this.trueCommands[i]) {

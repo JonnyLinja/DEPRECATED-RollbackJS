@@ -38,7 +38,7 @@ shooter.GameSimulation.prototype.__defineSetter__("frame", function(f) {
 shooter.GameSimulation.prototype.execute = function(player, command) {
 	//console.log("executing command " + command.w + ", " + command.a + ", " + command.s + ", " + command.d);
 
-	if(player == 1) {
+	if(player === 0) {
 		//p1
 
 		//vertical
@@ -54,7 +54,7 @@ shooter.GameSimulation.prototype.execute = function(player, command) {
 		}else if(command.d && !command.a) {
 			this.p1.x += 5;
 		}
-	}else if(player == 2) {
+	}else if(player === 1) {
 		//p2
 
 		//vertical
