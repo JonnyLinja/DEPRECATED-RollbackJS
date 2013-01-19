@@ -7,11 +7,6 @@ shooter.GameSimulation = function() {
 	//create world
 	this.world = new rollbackgameengine.World(shooter.entities.bullet, shooter.entities.alien, shooter.entities.human);
 
-	//initialize collisions
-	//this.world.addCollision(shooter.entities.alien, shooter.entities.bullet);
-	//this.world.addCollision(shooter.entities.human, shooter.entities.bullet);
-	//this.world.addCollision(shooter.entities.alien, shooter.entities.human);
-
 	//initialize entities
 	this.p1 = this.world.addEntity(shooter.entities.human);
 	this.p1.x = 50;
