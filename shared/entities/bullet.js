@@ -12,7 +12,7 @@ shooter.entities.bullet = {
 		return new rollbackgameengine.Entity(
 			rollbackgameengine.components.Frame,		[0, 0, 14, 12],
 			rollbackgameengine.components.Collision,
-			shooter.components.DiesOnCollision,			[shooter.entities.person],
+			shooter.components.DiesOnCollision,			[shooter.entities.human],
 			rollbackgameengine.components.Spritemap,	["images/airball.PNG"]
 		);
 	}
