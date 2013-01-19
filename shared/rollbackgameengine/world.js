@@ -44,7 +44,7 @@ rollbackgameengine.World = function() {
 		this.entitiesDictionary[factory] = list;
 	}
 
-	//add collisions variables
+	//add components and collisions variables
 	var current = null;
 	var currentCollision = null;
 	var found = false;
@@ -185,49 +185,63 @@ rollbackgameengine.World.prototype.updateLists = function() {
 	}
 }
 
-rollbackgameengine.World.prototype.updateCollisions = function() {
+//consider having a collideFirst function
+
+rollbackgameengine.World.prototype.checkCollision = function(factory1, factory2, callback) {
 	//declare variables
-	var currentCollision = this.collisions.head;
 	var list1 = null;
 	var list2 = null;
 	var currentFactory1 = null;
 	var currentFactory2 = null;
 
-	//loop through collisions
-	while(currentCollision) {
-		//get lists
-		list1 = this.entitiesDictionary[currentCollision.obj.factory1];
-		list2 = this.entitiesDictionary[currentCollision.obj.factory2];
+	//get lists
+	list1 = this.entitiesDictionary[factory1];
+	list2 = this.entitiesDictionary[factory2];
 
-		//check against map
-		if(list1 && list2) {
-			//exists
+	//check against map
+	if(list1 && list2) {
+		//exists
 
-			//loop through factory 1
-			currentFactory1 = list1.head;
-			while (currentFactory1) {
-				//loop through factory 2
-				currentFactory2 = list2.head;
-				while(currentFactory2) {
-					//collide
-					if(currentFactory1 !== currentFactory2 && currentFactory1.collidable && currentFactory2.collidable &&
-						!(currentFactory1.x > currentFactory2.x+currentFactory2.width ||
-							currentFactory1.y > currentFactory2.y+currentFactory2.height ||
-							currentFactory1.x+currentFactory1.width < currentFactory2.x ||
-							currentFactory1.y+currentFactory1.height < currentFactory2.y)) {
-						//callbacks
-						currentFactory1.didCollide(currentFactory2);
-						currentFactory2.didCollide(currentFactory1);
-					}
-
-					//increment
-					currentFactory2 = currentFactory2.nextEntity;
+		//loop through factory 1
+		currentFactory1 = list1.head;
+		while (currentFactory1) {
+			//loop through factory 2
+			currentFactory2 = list2.head;
+			while(currentFactory2) {
+				//collide
+				if(currentFactory1 !== currentFactory2 && currentFactory1.collidable && currentFactory2.collidable &&
+					!(currentFactory1.x > currentFactory2.x+currentFactory2.width ||
+						currentFactory1.y > currentFactory2.y+currentFactory2.height ||
+						currentFactory1.x+currentFactory1.width < currentFactory2.x ||
+						currentFactory1.y+currentFactory1.height < currentFactory2.y)) {
+					callback(currentFactory1, currentFactory2);
 				}
 
 				//increment
-				currentFactory1 = currentFactory1.nextEntity;
+				currentFactory2 = currentFactory2.nextEntity;
 			}
+
+			//increment
+			currentFactory1 = currentFactory1.nextEntity;
 		}
+	}
+}
+
+//private
+//collision callback
+rollbackgameengine.World.prototype._handleCollision = function(entity1, entity2) {
+	entity1.didCollide(entity2);
+	entity2.didCollide(entity1);
+}
+
+rollbackgameengine.World.prototype.updateCollisions = function() {
+	//declare variables
+	var currentCollision = this.collisions.head;
+
+	//loop through collisions
+	while(currentCollision) {
+		//check collision
+		this.checkCollision(currentCollision.obj.factory1, currentCollision.obj.factory2, this._handleCollision);
 
 		//increment
 		currentCollision = currentCollision.next;
@@ -354,7 +368,7 @@ rollbackgameengine.World.prototype.rollback = function(world) {
 		myCurrentOuterList = myCurrentOuterList.nextEntityList;
 		otherCurrentOuterList = otherCurrentOuterList.nextEntityList;
 	}
-	
+
 	//update lists
 	this.updateLists();
 
