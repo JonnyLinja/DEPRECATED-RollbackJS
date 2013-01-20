@@ -22,13 +22,14 @@ rollbackgameengine.World = function() {
 
 	//factory tracking variables
 	var factory = null;
-	var entity = null;
 	var list = null;
 
 	//loop through arguments
 	for(var i=0, j=arguments.length; i<j; i++) {
 		//set factory
 		factory = arguments[i];
+
+		//todo - move this to a rollbackgameengine initFactory function
 
 		//give ID
 		rollbackgameengine.giveID(factory);
@@ -45,6 +46,7 @@ rollbackgameengine.World = function() {
 	}
 
 	//add components and collisions variables
+	var entity = null;
 	var current = null;
 	var currentCollision = null;
 	var found = false;
@@ -54,23 +56,17 @@ rollbackgameengine.World = function() {
 		//set factory
 		factory = arguments[i];
 
-		//create dummy pooled entity
+		//create dummy pooled entity - it creates the collision maps for the factories
 		entity = this._createEntity(factory);
 		rollbackgameengine.pool.add(factory, entity);
 
-		//update components
-
-		//render components
-
-		//rollback components
-
 		//add collisions if able
-		if(typeof entity.collisionMap !== 'undefined') {
+		if(typeof factory._collisionMap !== 'undefined') {
 			//loop through factories
 			current = this.entitiesList.head;
 			while(current) {
 				//exists
-				if(entity.collisionMap.hasOwnProperty(current.factory)) {
+				if(factory._collisionMap.hasOwnProperty(current.factory)) {
 					//reset found
 					found = false;
 
@@ -108,11 +104,12 @@ rollbackgameengine.World.prototype._createEntity = function(factory) {
 
 	//make new entity if needed
 	if(!entity) {
-		entity = factory.create();
-	}
+		//create entity
+		entity = new rollbackgameengine.Entity(factory);
 
-	//set factory
-	entity.factory = factory;
+		//load
+		factory.load(entity);
+	}
 
 	//return
 	return entity;

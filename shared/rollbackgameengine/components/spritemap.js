@@ -6,52 +6,31 @@
 // later on need to be able to store spritemap data separately from easel spritemap
 //==================================================//
 
-rollbackgameengine.components.Spritemap = function() {
-}
+rollbackgameengine.components.spritemap = {
+	load : function(entity, imagesrc) {
+		//save url
+		entity.imagesrc = imagesrc;
 
-rollbackgameengine.components.Spritemap.prototype.init = function(imagesrc) {
-	//image
-	this.image = new Image();
-	this.image.src = imagesrc;
-	/*
-	//spritesheet
-	this.spriteSheet = new createjs.SpriteSheet({
-    	// image to use
-    	images: [this.image], 
-    	// width, height & registration point of each sprite
-    	frames: {width:this.entity.width, height:this.entity.height, regX:0, regY:0}, //is regxy position?
-    	animations: {
-    	    walkdown: [3, 4, "walkdown", 4]
-	    }
-	});
+		//return
+		return this;
+	},
 
-	//bitmap animation
-	this.bmpAnimation = new createjs.BitmapAnimation(this.spriteSheet);
+	update : function(entity) {
 
-	//walkdown
-	this.bmpAnimation.gotoAndPlay("walkdown");
+	},
 
-	//start frame
-	this.bmpAnimation.currentFrame = 0;
-	*/
-}
+	render : function(entity, ctx) {
+		//create image
+		if(!entity.image) {
+			entity.image = new Image();
+			entity.image.src = entity.imagesrc;
+		}
 
-rollbackgameengine.components.Spritemap.prototype.update = function() {
-	//this.bmpAnimation._tick();
-}
+		//draw
+		ctx.drawImage(entity.image, 0, 0, entity.width, entity.height, entity.x, entity.y, entity.width, entity.height);
+	},
 
-rollbackgameengine.components.Spritemap.prototype.render = function(ctx) {
-	/*
-	ctx.save();
-	this.bmpAnimation.updateContext(ctx);
-	this.bmpAnimation.x = this.entity.x;
-	this.bmpAnimation.y = this.entity.y;
-	this.bmpAnimation.draw(ctx, true);
-	ctx.restore();
-	*/
-	ctx.drawImage(this.image, 0, 0, this.entity.width, this.entity.height, this.entity.x, this.entity.y, this.entity.width, this.entity.height);
-}
+	rollback : function(entity1, entity2) {
 
-rollbackgameengine.components.Spritemap.prototype.rollback = function(component) {
-
+	}
 }

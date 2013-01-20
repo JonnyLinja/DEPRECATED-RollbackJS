@@ -4,16 +4,13 @@
 //==================================================//
 
 shooter.entities.bullet = {
-	//zposition
-	zPosition : 1,
-
-	//create
-	create : function() {
-		return new rollbackgameengine.Entity(
-			rollbackgameengine.components.Frame,		[0, 0, 14, 12],
-			rollbackgameengine.components.Collision,
-			shooter.components.DiesOnCollision,			[shooter.entities.human],
-			rollbackgameengine.components.Spritemap,	["images/airball.PNG"]
+	//load
+	load : function(entity) {
+		entity.loadComponents(
+			rollbackgameengine.components.frame.load(entity, 0, 0, 14, 12),
+			rollbackgameengine.components.collision.load(entity),
+			shooter.components.diesOnCollision.load(entity, shooter.entities.human, shooter.entities.alien),
+			rollbackgameengine.components.spritemap.load(entity, "images/airball.PNG")
 		);
-	}
+	},
 };

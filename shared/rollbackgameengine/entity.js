@@ -4,72 +4,84 @@
 //==================================================//
 
 //expects components to be passed in
-rollbackgameengine.Entity = function() {
-	//declare linked lists
-	this.updateComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
-	this.renderComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
-	this.rollbackComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
-
-	//class identifier - NOT for collisions, do not change manually
-	this.factory = null;
+rollbackgameengine.Entity = function(factory) {
+	//set factory
+	this.factory = factory;
 
 	//reference to container world
 	this.world = null;
+}
 
-	//add components
-	var component = null;
-	var hasArguments = false;
-	for (var i=0, j=arguments.length; i<j; i++) {
-		//has arguments
-		hasArguments = (i+1 < j) && (arguments[i+1] instanceof Array);
+rollbackgameengine.Entity.prototype.loadComponents = function() {
+	//figure out how to append this to previous loop
+	var addUpdate = false;
+	var addRender = false;
+	var addRollback = false;
 
-		//create
-		component = new arguments[i];
+	//reset booleans
+	addUpdate = false;
+	addRender = false;
+	addRollback = false;
 
-		//set entity
-		component.entity = this;
+	//update components
+	if(!this.factory._updateComponents) {
+		//create list
+		this.factory._updateComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
 
-		//init
-		if(component.init) {
-			if(!hasArguments) {
-				//no arguments
-				component.init();
-			}else {
-				//arguments
-				component.init.apply(component, arguments[i+1]);
-			}
+		//set bool
+		addUpdate = true;
+	}
+
+	//render components
+	if(!this.factory._renderComponents) {
+		//create list
+		this.factory._renderComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
+
+		//set bool
+		addRender = true;
+	}
+
+	//rollback components
+	if(!this.factory._rollbackComponents) {
+		//create list
+		this.factory._rollbackComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
+
+		//set bool
+		addRollback = true;
+	}
+
+	//determine need to load
+	if(!addUpdate && !addRollback && !addRollback) {
+		return;
+	}
+
+	//loop components
+	for(var i=0, j=arguments.length; i<j; i++) {
+		//update
+		if(addUpdate && arguments[i].update) {
+			this.factory._updateComponents.add(arguments[i]);
 		}
 
-		//add update
-		if(component.update) {
-			this.updateComponents.add(component);
+		//render
+		if(addRender && arguments[i].render) {
+			this.factory._renderComponents.add(arguments[i]);
 		}
 
-		//add render
-		if(component.render) {
-			this.renderComponents.add(component);
-		}
-
-		//add rollback
-		if(component.rollback) {
-			this.rollbackComponents.add(component);
-		}
-
-		//skip
-		if(hasArguments) {
-			i++;
+		//rollback
+		if(addRollback && arguments[i].rollback) {
+			this.factory._rollbackComponents.add(arguments[i]);
 		}
 	}
 }
 
 rollbackgameengine.Entity.prototype.update = function() {
 	//get top most element
-	var current = this.updateComponents.head;
+	var current = this.factory._updateComponents.head;
 
 	//loop through list
 	while (current) {
 		//update
-		current.obj.update();
+		current.obj.update(this);
 
 		//increment
 		current = current.next;
@@ -78,12 +90,12 @@ rollbackgameengine.Entity.prototype.update = function() {
 
 rollbackgameengine.Entity.prototype.render = function(ctx) {
 	//get top most element
-	var current = this.renderComponents.head;
+	var current = this.factory._renderComponents.head;
 
 	//loop through list
 	while (current) {
 		//render
-		current.obj.render(ctx);
+		current.obj.render(this, ctx);
 
 		//increment
 		current = current.next;
@@ -92,16 +104,14 @@ rollbackgameengine.Entity.prototype.render = function(ctx) {
 
 rollbackgameengine.Entity.prototype.rollback = function(e) {
 	//declare variables
-	var myCurrent = this.rollbackComponents.head;
-	var theirCurrent = e.rollbackComponents.head;
+	var current = this.factory._rollbackComponents.head;
 
 	//loop through list
-	while (myCurrent) {
+	while (current) {
 		//rollback
-		myCurrent.obj.rollback(theirCurrent.obj);
+		current.obj.rollback(this, e);
 
 		//increment
-		myCurrent = myCurrent.next;
-		theirCurrent = theirCurrent.next;
+		current = current.next;
 	}
 }

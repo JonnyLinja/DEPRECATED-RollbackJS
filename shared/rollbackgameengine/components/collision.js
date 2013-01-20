@@ -3,53 +3,57 @@
 // rollbackgameengine/components/collision.js
 //==================================================//
 
-rollbackgameengine.components.Collision = function() {
-}
+rollbackgameengine.components.collision = {
+	load : function(entity) {
+		//collidable
+		entity.collidable = true;
 
-rollbackgameengine.components.Collision.prototype.init = function() {
-	//collidable
-	this.entity.collidable = true;
+		//collision map
+		if(!entity.factory._collisionMap) {
+			entity.factory._collisionMap = {};
+		}
 
-	//collision map
-	this.entity.collisionMap = {};
+		//functions
+		entity.registerCollision = this.registerCollision;
+		entity.didCollide = this.didCollide;
 
-	//functions
-	this.entity.registerCollision = this.registerCollision;
-	this.entity.didCollide = this.didCollide;
-}
+		//return
+		return this;
+	},
 
-//this refers to this.entity
-rollbackgameengine.components.Collision.prototype.registerCollision = function(factory, component) {
-	//create new
-	if(!this.collisionMap[factory]) {
-		this.collisionMap[factory] = new rollbackgameengine.datastructures.SinglyLinkedList();
+	rollback : function(entity1, entity2) {
+		//rollback values
+		entity1.collidable = entity2.collidable;
+	},
+
+	//this refers to this.entity
+	registerCollision : function(factory, component) {
+		//create new
+		if(!this.factory._collisionMap[factory]) {
+			this.factory._collisionMap[factory] = new rollbackgameengine.datastructures.SinglyLinkedList();
+		}
+
+		//add
+		this.factory._collisionMap[factory].add(component);
+	},
+
+	//this refers to this.entity
+	didCollide : function(entity) {
+		//check if a component is registered
+		if(!this.factory._collisionMap[entity.factory]) {
+			return;
+		}
+
+		//declare variables
+		var current = this.factory._collisionMap[entity.factory].head;
+
+		//loop through components
+		while (current) {
+			//callback
+			current.obj.didCollide(entity);
+
+			//increment
+			current = current.next;
+		}
 	}
-
-	//add
-	this.collisionMap[factory].add(component);
-}
-
-//this refers to this.entity
-rollbackgameengine.components.Collision.prototype.didCollide = function(entity) {
-	//check if a component is registered
-	if(!this.collisionMap[entity.factory]) {
-		return;
-	}
-
-	//declare variables
-	var current = this.collisionMap[entity.factory].head;
-
-	//loop through components
-	while (current) {
-		//callback
-		current.obj.didCollide(entity);
-
-		//increment
-		current = current.next;
-	}
-}
-
-rollbackgameengine.components.Collision.prototype.rollback = function(component) {
-	//rollback values
-	this.entity.collidable = component.entity.collidable;
 }

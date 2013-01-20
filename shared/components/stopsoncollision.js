@@ -3,17 +3,17 @@
 // components/stopsoncollision.js
 //==================================================//
 
-shooter.components.StopsOnCollision = function() {
-}
+shooter.components.stopsOnCollision = {
+	load : function(entity) {
+		//register collisions
+		for(var i=1, j=arguments.length; i<j; i++) {
+			entity.registerCollision(arguments[i], this);
+		}
 
-shooter.components.StopsOnCollision.prototype.init = function() {
-	//register collisions
-	for(var i=0, j=arguments.length; i<j; i++) {
-		this.entity.registerCollision(arguments[i], this);
+		//return
+		return this;
+	},
+
+	didCollide : function(entity1, entity2) {
 	}
-}
-
-shooter.components.StopsOnCollision.prototype.didCollide = function(entity) {
-	//todo - stop flush
-	//this.entity.world.recycleEntity(this.entity);
 }

@@ -3,14 +3,16 @@
 // components/hp.js
 //==================================================//
 
-shooter.components.HP = function() {
-}
+shooter.components.hp = {
+	load : function(entity, maxHP) {
+		//set hp
+		entity.hp = maxHP;
 
-shooter.components.HP.prototype.init = function(maxHP) {
-	//set hp
-	this.entity.hp = maxHP;
-}
+		//return
+		return this;
+	},
 
-shooter.components.HP.prototype.rollback = function(component) {
-	this.entity.hp = component.entity.hp;
+	rollback : function(entity1, entity2) {
+		entity1.hp = entity2.hp;
+	}
 }

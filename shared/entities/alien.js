@@ -4,17 +4,22 @@
 //==================================================//
 
 shooter.entities.alien = {
-	//zposition
-	zPosition : 10,
-
-	//create
-	create : function() {
-		return new rollbackgameengine.Entity(
-			rollbackgameengine.components.Frame,		[0, 0, 31, 33],
-			rollbackgameengine.components.Collision,
-			shooter.components.DamagedOnCollision,		[shooter.entities.bullet],
-			shooter.components.StopsOnCollision,		[shooter.entities.human],
-			rollbackgameengine.components.Spritemap,	["images/aliengun.png"]
+	//load
+	load : function(entity) {
+		entity.loadComponents(
+			rollbackgameengine.components.frame.load(entity, 0, 0, 31, 33),
+			rollbackgameengine.components.collision.load(entity),
+			shooter.components.damagedOnCollision.load(entity, shooter.entities.bullet),
+			shooter.components.stopsOnCollision.load(entity, shooter.entities.human),
+			rollbackgameengine.components.spritemap.load(entity, "images/aliengun.png")
 		);
+	},
+
+	//zposition
+	zPosition : 0,
+
+	//update
+	update : function(entity) {
+		console.log("update called");
 	}
 };

@@ -3,19 +3,21 @@
 // rollbackgameengine/components/frame.js
 //==================================================//
 
-rollbackgameengine.components.Frame = function() {
-}
+rollbackgameengine.components.frame = {
+	load : function(entity, x, y, width, height) {
+		//add default properties to parent
+		entity.x = x;
+		entity.y = y;
+		entity.width = width;
+		entity.height = height;
 
-rollbackgameengine.components.Frame.prototype.init = function(x, y, width, height) {
-	//add default properties to parent
-	this.entity.x = x;
-	this.entity.y = y;
-	this.entity.width = width;
-	this.entity.height = height;
-}
-
-rollbackgameengine.components.Frame.prototype.rollback = function(component) {
-	//rollback values
-	this.entity.x = component.entity.x;
-	this.entity.y = component.entity.y;
+		//return
+		return this;
+	},
+	
+	rollback : function(entity1, entity2) {
+		//rollback values
+		entity1.x = entity2.x;
+		entity1.y = entity2.y;
+	}
 }
