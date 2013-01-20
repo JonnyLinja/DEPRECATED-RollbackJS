@@ -86,6 +86,11 @@ rollbackgameengine.Entity.prototype.update = function() {
 		//increment
 		current = current.next;
 	}
+
+	//check factory
+	if(this.factory.update) {
+		this.factory.update(this);
+	}
 }
 
 rollbackgameengine.Entity.prototype.render = function(ctx) {
@@ -100,6 +105,11 @@ rollbackgameengine.Entity.prototype.render = function(ctx) {
 		//increment
 		current = current.next;
 	}
+
+	//check factory
+	if(this.factory.render) {
+		this.factory.render(this, ctx);
+	}
 }
 
 rollbackgameengine.Entity.prototype.rollback = function(e) {
@@ -113,5 +123,10 @@ rollbackgameengine.Entity.prototype.rollback = function(e) {
 
 		//increment
 		current = current.next;
+	}
+
+	//check factory
+	if(this.factory.rollback) {
+		this.factory.rollback(this, e);
 	}
 }
