@@ -50,10 +50,15 @@ rollbackgameengine.components.collision = {
 		//loop through components
 		while (current) {
 			//callback
-			current.obj.didCollide(entity);
+			current.obj.didCollide(this, entity);
 
 			//increment
 			current = current.next;
+		}
+
+		//check factory
+		if(this.factory.didCollide) {
+			this.factory.didCollide(this, entity);
 		}
 	}
 }
