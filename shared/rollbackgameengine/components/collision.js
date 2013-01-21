@@ -28,6 +28,11 @@ rollbackgameengine.components.collision = {
 
 	//this refers to entity
 	_registerCollision : function(factory, component) {
+		//check loaded
+		if(factory._loaded) {
+			return;
+		}
+
 		//create new
 		if(!this.factory._collisionMap[factory]) {
 			this.factory._collisionMap[factory] = new rollbackgameengine.datastructures.SinglyLinkedList();

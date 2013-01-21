@@ -13,62 +13,47 @@ rollbackgameengine.Entity = function(factory) {
 }
 
 rollbackgameengine.Entity.prototype.loadComponents = function() {
-	//figure out how to append this to previous loop
-	var addUpdate = false;
-	var addRender = false;
-	var addRollback = false;
-
-	//reset booleans
-	addUpdate = false;
-	addRender = false;
-	addRollback = false;
+	//determine loaded
+	if(this.factory._loaded) {
+		//no loading needed
+		return;
+	}else {
+		//set loaded
+		this.factory._loaded = true;
+	}
 
 	//update components
 	if(!this.factory._updateComponents) {
 		//create list
 		this.factory._updateComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
-
-		//set bool
-		addUpdate = true;
 	}
 
 	//render components
 	if(!this.factory._renderComponents) {
 		//create list
 		this.factory._renderComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
-
-		//set bool
-		addRender = true;
 	}
 
 	//rollback components
 	if(!this.factory._rollbackComponents) {
 		//create list
 		this.factory._rollbackComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
-
-		//set bool
-		addRollback = true;
-	}
-
-	//determine need to load
-	if(!addUpdate && !addRollback && !addRollback) {
-		return;
 	}
 
 	//loop components
 	for(var i=0, j=arguments.length; i<j; i++) {
 		//update
-		if(addUpdate && arguments[i].update) {
+		if(arguments[i].update) {
 			this.factory._updateComponents.add(arguments[i]);
 		}
 
 		//render
-		if(addRender && arguments[i].render) {
+		if(arguments[i].render) {
 			this.factory._renderComponents.add(arguments[i]);
 		}
 
 		//rollback
-		if(addRollback && arguments[i].rollback) {
+		if(arguments[i].rollback) {
 			this.factory._rollbackComponents.add(arguments[i]);
 		}
 	}
