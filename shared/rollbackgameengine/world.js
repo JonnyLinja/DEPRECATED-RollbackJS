@@ -150,6 +150,9 @@ rollbackgameengine.World.prototype.updateLists = function() {
 
 		//add to list
 		this.entitiesDictionary[entity.factory].add(entity);
+
+		//addedToWorld
+		entity.addedToWorld();
 	}
 
 	//recycle
@@ -165,6 +168,9 @@ rollbackgameengine.World.prototype.updateLists = function() {
 
 		//add to pool
 		rollbackgameengine.pool.add(entity.factory, entity);
+
+		//removedFromWorld
+		entity.removedFromWorld();
 	}
 
 	//remove
@@ -177,6 +183,9 @@ rollbackgameengine.World.prototype.updateLists = function() {
 
 		//remove world
 		entity.world = null;
+
+		//removedFromWorld
+		entity.removedFromWorld();
 	}
 }
 

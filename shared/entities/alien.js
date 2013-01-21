@@ -15,10 +15,18 @@ shooter.entities.alien = {
 		);
 	},
 
-	//zposition
-	zPosition : 0,
+	//animations
+	animations : {
+		walkdown : [
+			0, 1, 2
+		],
+		spin : [
+			0, 3, 6, 9
+		],
+	},
 
-	//update
-	update : function(entity) {
+	//added to world
+	addedToWorld : function(entity) {
+		entity.animateSpritemap(this.animations.spin, true);
 	}
 };
