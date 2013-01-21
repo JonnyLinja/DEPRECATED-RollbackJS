@@ -24,7 +24,7 @@ var canvas = null;
 
 //controller
 //var controller = new rollbackclientengine.controllers.PlayController('ws://127.0.0.1:8080', shooter.GameSimulation, shooter.Command); //local
-var controller = new rollbackclientengine.controllers.PlayController('ws://shooter-5551.onmodulus.net', shooter.GameSimulation, shooter.Command); //live
+var controller = new rollbackclientengine.controllers.PlayController('ws://shooter-5551.onmodulus.net', shooter.GameSimulation, shooter.commands.Command); //live
 
 //keydown
 document.onkeydown = function(e) {

@@ -1,6 +1,8 @@
 
 //==================================================//
 // rollbackgameengine/components/spritemap.js
+// todo - create internal id system to represent animations per entity
+// dont want the internal code to use string identifiers but want networking to use it
 //==================================================//
 
 rollbackgameengine.components.spritemap = {

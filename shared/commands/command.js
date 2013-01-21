@@ -1,17 +1,17 @@
 
 //==================================================//
-// command.js
+// commands/command.js
 // controllers will set this.frame
 // however command itself does not manage it
 //==================================================//
 
-shooter.Command = function() {
+shooter.commands.Command = function() {
 	this.reset();
 }
 
 //reset
 
-shooter.Command.prototype.reset = function() {
+shooter.commands.Command.prototype.reset = function() {
 	//booleans
 	this.w = false;				//1
 	this.a = false;				//1
@@ -24,7 +24,7 @@ shooter.Command.prototype.reset = function() {
 
 //loading
 
-shooter.Command.prototype.loadFromMessage = function(incomingmessage) {
+shooter.commands.Command.prototype.loadFromMessage = function(incomingmessage) {
 	//booleans
 	this.w = incomingmessage.nextBoolean();
 	this.a = incomingmessage.nextBoolean();
@@ -35,7 +35,7 @@ shooter.Command.prototype.loadFromMessage = function(incomingmessage) {
 	this.mouseY = incomingmessage.nextUnsignedInteger(10);
 }
 
-shooter.Command.prototype.loadFromCommand = function(command) {
+shooter.commands.Command.prototype.loadFromCommand = function(command) {
 	//booleans
 	this.w = command.w;
 	this.a = command.a;
@@ -48,9 +48,9 @@ shooter.Command.prototype.loadFromCommand = function(command) {
 
 //sending
 
-shooter.Command.prototype.totalBitSize = 25; //calculate based on data
+shooter.commands.Command.prototype.totalBitSize = 25; //calculate based on data
 
-shooter.Command.prototype.addDataToMessage = function(outgoingmessage) {
+shooter.commands.Command.prototype.addDataToMessage = function(outgoingmessage) {
 	//booleans
 	outgoingmessage.addBoolean(this.w);
 	outgoingmessage.addBoolean(this.a);
@@ -63,6 +63,6 @@ shooter.Command.prototype.addDataToMessage = function(outgoingmessage) {
 
 //helper
 
-shooter.Command.prototype.toString = function() {
+shooter.commands.Command.prototype.toString = function() {
 	return "<" + this.w + ", " + this.a + ", " + this.s + ", " + this.d + ">";
 }

@@ -4,6 +4,7 @@
 
 //declare namespaces
 var shooter = {};
+shooter.commands = {};
 shooter.entities = {};
 shooter.components = {};
 

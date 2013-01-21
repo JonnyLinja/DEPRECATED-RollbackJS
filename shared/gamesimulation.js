@@ -29,17 +29,21 @@ shooter.GameSimulation = function() {
 	right.width = 800;
 	right.height = 640;
 
-	//initialize entities
+	//p1
 	this.p1 = this.world.addEntity(shooter.entities.human);
 	this.p1.x = 50;
 	this.p1.y = 50;
+
+	//p2
 	this.p2 = this.world.addEntity(shooter.entities.alien);
 	this.p2.x = 600;
 	this.p2.y = 300;
 
-	//initialize mouse state
-	this.p1.mouseDown = false;
-	this.p2.mouseDown = false;
+	//processor1
+	this.processor1 = new shooter.commands.CommandProcessor(this, this.p1);
+
+	//processor2
+	this.processor2 = new shooter.commands.CommandProcessor(this, this.p2);
 }
 
 //getters and setters
@@ -61,54 +65,10 @@ shooter.GameSimulation.prototype.execute = function(player, command) {
 
 	if(player === 0) {
 		//p1
-
-		//mouse
-		if(!this.p1.mouseDown && command.mouseDown) {
-			//click, create entity
-			var bullet = this.world.addEntity(shooter.entities.bullet);
-			bullet.x = command.mouseX;
-			bullet.y = command.mouseY;
-		}
-		this.p1.mousedown = command.mouseDown;
-
-		//vertical
-		if(command.w && !command.s) {
-			this.p1.y -= 5;
-		}else if(command.s && !command.w) {
-			this.p1.y += 5;
-		}
-
-		//horizontal
-		if(command.a && !command.d) {
-			this.p1.x -= 5;
-		}else if(command.d && !command.a) {
-			this.p1.x += 5;
-		}
+		this.processor1.update(command);
 	}else if(player === 1) {
 		//p2
-
-		//mouse
-		if(!this.p2.mouseDown && command.mouseDown) {
-			//click, create entity
-			var bullet = this.world.addEntity(shooter.entities.bullet);
-			bullet.x = command.mouseX;
-			bullet.y = command.mouseY;
-		}
-		this.p2.mousedown = command.mouseDown;
-
-		//vertical
-		if(command.w && !command.s) {
-			this.p2.y -= 5;
-		}else if(command.s && !command.w) {
-			this.p2.y += 5;
-		}
-
-		//horizontal
-		if(command.a && !command.d) {
-			this.p2.x -= 5;
-		}else if(command.d && !command.a) {
-			this.p2.x += 5;
-		}
+		this.processor2.update(command);
 	}
 }
 
@@ -123,5 +83,10 @@ shooter.GameSimulation.prototype.render = function(ctx) {
 }
 
 shooter.GameSimulation.prototype.rollback = function(gamesimulation) {
+	//rollback processors
+	this.processor1.rollback(gamesimulation.processor1);
+	this.processor2.rollback(gamesimulation.processor2);
+
+	//rollback world
 	this.world.rollback(gamesimulation.world);
 }
