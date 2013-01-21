@@ -86,6 +86,38 @@ document.onkeyup = function(e) {
 	}
 }
 
+function onmousemove(e) {
+	//get relative x y
+	var x = e.pageX-canvas.offsetLeft;
+	var y = e.pageY-canvas.offsetTop;
+
+	//normalize
+	if(x < 0) {
+		x = 0;
+	}
+	if(x > canvas.width) {
+		x = canvas.width;
+	}
+	if(y < 0) {
+		y = 0;
+	}
+	if(y > canvas.height) {
+		y = canvas.height;
+	}
+
+	//set command
+	controller.outgoingCommand.mouseX = x;
+	controller.outgoingCommand.mouseY = y;
+}
+
+function onmousedown(e) {
+	controller.outgoingCommand.mouseDown = true;
+}
+
+function onmouseup(e) {
+	controller.outgoingCommand.mouseDown = false;
+}
+
 //update loop
 function loop() {
 	//request anim frame
@@ -96,7 +128,11 @@ function loop() {
 	if(typeof canvas === 'undefined' || !canvas) {
 		var temp = document.getElementById("testCanvas");
 		if(temp) {
+			//load
 			canvas = temp;
+			canvas.onmousemove = onmousemove;
+			canvas.onmousedown = onmousedown;
+			canvas.onmouseup = onmouseup;
 		}
 	}
 

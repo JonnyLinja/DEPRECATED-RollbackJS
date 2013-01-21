@@ -36,6 +36,10 @@ shooter.GameSimulation = function() {
 	this.p2 = this.world.addEntity(shooter.entities.alien);
 	this.p2.x = 600;
 	this.p2.y = 300;
+
+	//initialize mouse state
+	this.p1.mouseDown = false;
+	this.p2.mouseDown = false;
 }
 
 //getters and setters
@@ -58,6 +62,15 @@ shooter.GameSimulation.prototype.execute = function(player, command) {
 	if(player === 0) {
 		//p1
 
+		//mouse
+		if(!this.p1.mouseDown && command.mouseDown) {
+			//click, create entity
+			var bullet = this.world.addEntity(shooter.entities.bullet);
+			bullet.x = command.mouseX;
+			bullet.y = command.mouseY;
+		}
+		this.p1.mousedown = command.mouseDown;
+
 		//vertical
 		if(command.w && !command.s) {
 			this.p1.y -= 5;
@@ -73,6 +86,15 @@ shooter.GameSimulation.prototype.execute = function(player, command) {
 		}
 	}else if(player === 1) {
 		//p2
+
+		//mouse
+		if(!this.p2.mouseDown && command.mouseDown) {
+			//click, create entity
+			var bullet = this.world.addEntity(shooter.entities.bullet);
+			bullet.x = command.mouseX;
+			bullet.y = command.mouseY;
+		}
+		this.p2.mousedown = command.mouseDown;
 
 		//vertical
 		if(command.w && !command.s) {
