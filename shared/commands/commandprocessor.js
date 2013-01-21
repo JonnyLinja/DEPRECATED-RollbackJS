@@ -27,8 +27,7 @@ shooter.commands.CommandProcessor.prototype.update = function(command) {
 	if(!this.mouseDown && command.mouseDown) {
 		//click, create entity
 		var bullet = this.simulation.world.addEntity(shooter.entities.bullet);
-		bullet.x = command.mouseX;
-		bullet.y = command.mouseY;
+		bullet.center(command.mouseX, command.mouseY);
 	}
 
 	//save

@@ -19,6 +19,9 @@ rollbackgameengine.components.frame = {
 		entity.__defineGetter__("doubleCenterX",  this._doubleCenterX);
 		entity.__defineGetter__("doubleCenterY",  this._doubleCenterY);
 
+		//add center function
+		entity.center = this._center;
+
 		//return
 		return this;
 	},
@@ -59,5 +62,11 @@ rollbackgameengine.components.frame = {
 	//this refers to entity
 	_doubleCenterY : function() {
 		return (this.bottom * 0.5) + this.y;
+	},
+
+	//this refers to entity
+	_center : function(x, y) {
+		this.x = x - Math.floor(this.width * 0.5);
+		this.y = y - Math.floor(this.height * 0.5);
 	}
 }
