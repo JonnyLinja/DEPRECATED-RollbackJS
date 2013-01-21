@@ -5,7 +5,29 @@
 
 shooter.GameSimulation = function() {
 	//create world
-	this.world = new rollbackgameengine.World(shooter.entities.bullet, shooter.entities.alien, shooter.entities.human);
+	this.world = new rollbackgameengine.World(shooter.entities.bullet, shooter.entities.alien, shooter.entities.human, shooter.entities.wall);
+
+	//walls
+	var top = this.world.addEntity(shooter.entities.wall);
+	top.x = -800;
+	top.y = -640;
+	top.width = 2400;
+	top.height = 640;
+	var bottom = this.world.addEntity(shooter.entities.wall);
+	bottom.x = -800;
+	bottom.y = 640;
+	bottom.width = 2400;
+	bottom.height = 640;
+	var left = this.world.addEntity(shooter.entities.wall);
+	left.x = -800;
+	left.y = 0;
+	left.width = 800;
+	left.height = 640;
+	var right = this.world.addEntity(shooter.entities.wall);
+	right.x = 800;
+	right.y = 0;
+	right.width = 800;
+	right.height = 640;
 
 	//initialize entities
 	this.p1 = this.world.addEntity(shooter.entities.human);
