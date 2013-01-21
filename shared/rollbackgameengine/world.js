@@ -206,10 +206,10 @@ rollbackgameengine.World.prototype.checkCollision = function(factory1, factory2,
 		while(currentFactory2) {
 			//collide
 			if(currentFactory1 !== currentFactory2 && currentFactory1.collidable && currentFactory2.collidable &&
-				!(currentFactory1.x > currentFactory2.right ||
-					currentFactory1.y > currentFactory2.bottom ||
-					currentFactory1.right < currentFactory2.x ||
-					currentFactory1.bottom < currentFactory2.y)) {
+				!(currentFactory1.x >= currentFactory2.right ||
+					currentFactory1.y >= currentFactory2.bottom ||
+					currentFactory1.right <= currentFactory2.x ||
+					currentFactory1.bottom <= currentFactory2.y)) {
 				callback(currentFactory1, currentFactory2);
 			}
 
