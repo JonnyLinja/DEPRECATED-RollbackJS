@@ -29,7 +29,7 @@ rollbackgameengine.components.collision = {
 	//this refers to entity
 	_registerCollision : function(factory, component) {
 		//check loaded
-		if(factory._loaded) {
+		if(this.factory._loaded) {
 			return;
 		}
 
