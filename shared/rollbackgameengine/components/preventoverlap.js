@@ -64,8 +64,13 @@ rollbackgameengine.components.preventOverlap = {
 			diffY = bottom2 - entity1.y;
 		}
 
+		//valid check
+		if(!isLeft && !isRight && !isTop && !isBottom) {
+			return;
+		}
+
 		//resolve
-		if((!isTop && !isBottom && (isRight || isLeft)) || diffX <= diffY) {
+		if((!isTop && !isBottom) || (diffX <= diffY)) {
 			//x
 			if(isLeft) {
 				//left
@@ -86,7 +91,7 @@ rollbackgameengine.components.preventOverlap = {
 					entity1.moveX += diffX;
 				}
 			}
-		}else if((!isLeft && !isRight && (isTop || isBottom)) || diffX > diffY) {
+		}else if((!isLeft && !isRight) || (diffX > diffY)) {
 			//y
 			if(isTop) {
 				//top
