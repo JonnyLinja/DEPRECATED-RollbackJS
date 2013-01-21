@@ -29,8 +29,6 @@ rollbackgameengine.World = function() {
 		//set factory
 		factory = arguments[i];
 
-		//todo - move this to a rollbackgameengine initFactory function
-
 		//give ID
 		rollbackgameengine.giveID(factory);
 

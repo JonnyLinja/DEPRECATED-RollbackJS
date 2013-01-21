@@ -14,8 +14,8 @@ rollbackgameengine.components.collision = {
 		}
 
 		//functions
-		entity.registerCollision = this.registerCollision;
-		entity.didCollide = this.didCollide;
+		entity.registerCollision = this._registerCollision;
+		entity.didCollide = this._didCollide;
 
 		//return
 		return this;
@@ -26,8 +26,8 @@ rollbackgameengine.components.collision = {
 		entity1.collidable = entity2.collidable;
 	},
 
-	//this refers to this.entity
-	registerCollision : function(factory, component) {
+	//this refers to entity
+	_registerCollision : function(factory, component) {
 		//create new
 		if(!this.factory._collisionMap[factory]) {
 			this.factory._collisionMap[factory] = new rollbackgameengine.datastructures.SinglyLinkedList();
@@ -37,8 +37,8 @@ rollbackgameengine.components.collision = {
 		this.factory._collisionMap[factory].add(component);
 	},
 
-	//this refers to this.entity
-	didCollide : function(entity) {
+	//this refers to entity
+	_didCollide : function(entity) {
 		//check if a component is registered
 		if(!this.factory._collisionMap[entity.factory]) {
 			return;
