@@ -3,13 +3,10 @@ RollbackJS
 
 TODO:
 
-- Replace EaselJS with my own rendering system
 - Figure out system for canvas layers (background and boulders should have their own canvases)
-- Figure out system for spritesheets
 - Figure out system for offscreen canvas prerendering
 - Figure out system for canvas clearing bounding box
 - Remove zPosition from entity factories and replace with layer system
-- Flesh out stop on collision component
 - Add tracking function to World.js, moving all giveIDs to this function, and replacing zPosition altogether for order
 - Build the shooter game
 - Add encode and decode to data for entities and components
