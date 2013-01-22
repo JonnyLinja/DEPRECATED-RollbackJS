@@ -87,6 +87,12 @@ rollbackgameengine.components.spritemap = {
 
 		//detect already animating
 		if(this.spritemapAnimation === array) {
+            //start a stopped animation
+            if(this._spritemapAnimationPosition < 0) {
+                this._spritemapAnimationPosition = 0;
+            }
+            
+            //return
 			return;
 		}
 
