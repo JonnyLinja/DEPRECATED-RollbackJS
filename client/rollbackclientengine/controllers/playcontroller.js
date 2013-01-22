@@ -36,6 +36,8 @@ rollbackclientengine.controllers.PlayController = function(url, Simulation, Comm
     this.logsDisabled = true; //false
     this.commandID = new Array();
     this.framesSkipped = 0;
+    this.message = "Waiting for another player...";
+    this.displayedMessage = false;
 
     //frame rate default
     if(typeof frameRate === 'undefined') {
@@ -553,6 +555,17 @@ rollbackclientengine.controllers.PlayController.prototype.update = function() {
 rollbackclientengine.controllers.PlayController.prototype.render = function(canvas) {
     //valid
     if(!this.started) {
+        //debug
+        if(!this.displayedMessage) {
+            this.displayedMessage = true;
+            var ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.font = "normal 36px Verdana";
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillText(this.message, 50, 50);
+        }
+
+        //return
         return;
     }
 
@@ -778,6 +791,15 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
 }
 
 rollbackclientengine.controllers.PlayController.prototype.onDisconnect = function() {
+    //debug
+    this.displayedMessage = false;
+    if(this.started) {
+        this.message = "Disconnected, refresh to play again";
+    }else {
+        this.message = "Busy, 2 people are already playing";
+    }
+
+    //toggle boolean
     this.started = false;
 }
 
