@@ -26,7 +26,6 @@ rollbackgameengine.components.spritemap = {
 	update : function(entity) {
 		//animate
 		if(entity.spritemapAnimation && entity._spritemapAnimationPosition >= 0) {
-
 			//increment array position
 			entity._spritemapAnimationPosition++;
 
@@ -83,9 +82,16 @@ rollbackgameengine.components.spritemap = {
 
 	//this refers to entity
 	_animateSpritemap : function(array, loop) {
+		//save loop
+		this.spritemapAnimationIsLooping = loop;
+
+		//detect already animating
+		if(this.spritemapAnimation === array) {
+			return;
+		}
+
 		//save properties
 		this.spritemapAnimation = array;
-		this.spritemapAnimationIsLooping = loop;
 		this.spritemapAnimationFrame = array[0];
 		this._spritemapAnimationPosition = 0;
 	}
