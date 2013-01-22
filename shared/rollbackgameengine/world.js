@@ -191,6 +191,20 @@ rollbackgameengine.World.prototype.updateLists = function() {
 
 //consider having a collideFirst function
 
+rollbackgameengine.World.prototype.collides = function(entity1, entity2) {
+	if(entity1 !== entity2 && entity1.collidable && entity2.collidable &&
+		!(entity1.x >= entity2.right ||
+			entity1.y >= entity2.bottom ||
+			entity1.right <= entity2.x ||
+			entity1.bottom <= entity2.y)) {
+		//true
+		return true;
+	}
+
+	//false
+	return false;
+}
+
 rollbackgameengine.World.prototype.checkCollision = function(factory1, factory2, callback) {
 	//declare variables
 	var list1 = null;
@@ -214,11 +228,7 @@ rollbackgameengine.World.prototype.checkCollision = function(factory1, factory2,
 		currentFactory2 = list2.head;
 		while(currentFactory2) {
 			//collide
-			if(currentFactory1 !== currentFactory2 && currentFactory1.collidable && currentFactory2.collidable &&
-				!(currentFactory1.x >= currentFactory2.right ||
-					currentFactory1.y >= currentFactory2.bottom ||
-					currentFactory1.right <= currentFactory2.x ||
-					currentFactory1.bottom <= currentFactory2.y)) {
+			if(this.collides(currentFactory1, currentFactory2)) {
 				callback(currentFactory1, currentFactory2);
 			}
 

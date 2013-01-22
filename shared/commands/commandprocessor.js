@@ -25,9 +25,29 @@ shooter.commands.CommandProcessor = function(simulation, player) {
 shooter.commands.CommandProcessor.prototype.update = function(command) {
 	//mouse click
 	if(!this.mouseDown && command.mouseDown) {
-		//click, create entity
+		//click
+
+		//create bullet
 		var bullet = this.simulation.world.addEntity(shooter.entities.bullet);
-		bullet.center(command.mouseX, command.mouseY);
+
+		//math
+		var changeX = command.mouseX - this.player.centerX;
+		var changeY = command.mouseY - this.player.centerY;
+		var mag = Math.sqrt(Math.pow(changeX, 2) + Math.pow(changeY, 2));
+		var ratio = bullet.speed / mag;
+
+		//set velocity
+		bullet.vx = changeX * ratio;
+		bullet.vy = changeY * ratio;
+
+		//position bullet - prevent from shooting yourself
+		bullet.center(this.player.centerX, this.player.centerY);
+		while(this.simulation.world.collides(this.player, bullet)) {
+			bullet.x += bullet.vx;
+			bullet.y += bullet.vy;
+		}
+		bullet.x += 2*bullet.vx;
+		bullet.y += 2*bullet.vy;
 	}
 
 	//save
