@@ -8,7 +8,7 @@ shooter.entities.explosion = {
 	load : function(entity) {
 		entity.loadComponents(
 			rollbackgameengine.components.frame.load(entity, 0, 0, 79, 85),
-			rollbackgameengine.components.spritemap.load(entity, "images/blood.PNG"),
+			rollbackgameengine.components.spritemap.load(entity, "images/blood.png"),
 			rollbackgameengine.components.removedAfter.load(entity, this.animations.explode.length)
 		);
 	},
