@@ -87,5 +87,6 @@ rollbackgameengine.components.spritemap = {
 		this.spritemapAnimation = array;
 		this.spritemapAnimationIsLooping = loop;
 		this.spritemapAnimationFrame = array[0];
+		this._spritemapAnimationPosition = 0;
 	}
 }

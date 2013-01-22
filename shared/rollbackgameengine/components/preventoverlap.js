@@ -39,16 +39,16 @@ rollbackgameengine.components.preventOverlap = {
 		var right2 = entity2.right;
 		var bottom1 = entity1.bottom;
 		var bottom2 = entity2.bottom;
-		var doubleCenterX1 = entity1.doubleCenterX;
-		var doubleCenterX2 = entity2.doubleCenterX;
-		var doubleCenterY1 = entity1.doubleCenterY;
-		var doubleCenterY2 = entity2.doubleCenterY;
+		var centerX1 = entity1.centerX;
+		var centerX2 = entity2.centerX;
+		var centerY1 = entity1.centerY;
+		var centerY2 = entity2.centerY;
 		var diffX = 0;
 		var diffY = 0;
-		var isLeft = (doubleCenterX1 < doubleCenterX2);
-		var isRight = (doubleCenterX1 > doubleCenterX2);
-		var isTop = (doubleCenterY1 < doubleCenterY2);
-		var isBottom = (doubleCenterY1 > doubleCenterY2);
+		var isLeft = (centerX1 < centerX2);
+		var isRight = (centerX1 > centerX2);
+		var isTop = (centerY1 < centerY2);
+		var isBottom = (centerY1 > centerY2);
 
 		//get x diffs
 		if(isLeft) {

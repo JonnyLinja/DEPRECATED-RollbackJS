@@ -22,7 +22,7 @@ shooter.entities.alien = {
 		],
 		spin : [
 			0, 3, 6, 9
-		],
+		]
 	},
 
 	//added to world

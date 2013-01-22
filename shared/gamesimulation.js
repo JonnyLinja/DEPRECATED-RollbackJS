@@ -5,7 +5,7 @@
 
 shooter.GameSimulation = function() {
 	//create world
-	this.world = new rollbackgameengine.World(shooter.entities.bullet, shooter.entities.alien, shooter.entities.human, shooter.entities.wall);
+	this.world = new rollbackgameengine.World(shooter.entities.bullet, shooter.entities.alien, shooter.entities.human, shooter.entities.explosion, shooter.entities.wall);
 
 	//walls
 	var top = this.world.addEntity(shooter.entities.wall);
