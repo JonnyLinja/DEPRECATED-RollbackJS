@@ -72,7 +72,9 @@ rollbackclientengine.controllers.PlayController = function(url, Simulation, Comm
 
     //simulations
     this.trueSimulation = new Simulation();
+    this.trueSimulation.world.isTrue = true; //temp debug
     this.perceivedSimulation = new Simulation();
+    this.perceivedSimulation.world.isTrue = false; //temp debug
 
     //frame delay
     this.frameDelay = frameDelay + 1;
@@ -402,6 +404,8 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
     if(this.frameDifference > 1) {
         //send with frame
 
+        //todo - i think the bit calculation is off by 1
+
         //declare variables
         var frameBitSize = 1;
         var frameValue = this.frameDifference - 1; //0 based
@@ -479,7 +483,7 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
             if(!this.logsDisabled) {
                 c.id = this.commandID[this.player]++;
                 c.frame = this.perceivedSimulation.frame;
-                console.log("ADD CLONED COMMAND");
+                console.log("ADD MY CLONED COMMAND");
             }
 
             //store command
@@ -498,11 +502,11 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
 
     //add frame to message
     if(this.frameDifference > 1) {
+        message.addFinalUnsignedInteger(this.frameDifference-1);
         //debug log
         if(!this.logsDisabled) {
-            console.log("Adding final unsigned integer");
+            console.log("Adding final unsigned integer " + (this.frameDifference-1));
         }
-        message.addFinalUnsignedInteger(this.frameDifference-1);
     }
 
     //send message
@@ -719,6 +723,11 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
         //get frame
         var receivedFrameDifference = incomingMessage.finalUnsignedInteger()+1;
 
+        //debug
+        if(!this.logsDisabled) {
+            console.log("RECEIVED FRAME DIFFERENCE " + receivedFrameDifference);
+        }
+
         //add frame to command
         if(this.shouldSendFrame) {
             //todo - code this
@@ -743,7 +752,7 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
                 //debug logging
                 if(!this.logsDisabled) {
                     duplicate.id = this.commandID[player]++;
-                    console.log("ADD CLONED COMMAND");
+                    console.log("ADD ENEMY CLONED COMMAND");
                 }
 
                 //store command
@@ -809,7 +818,9 @@ rollbackclientengine.controllers.PlayController.prototype.displayCommands = func
     for(var i=0; i<this.playerCount; i++) {
         c = this.commands[i].head;
         while(c) {
-            if(c === this.trueCommands[i]) {
+            if(c === this.trueCommands[i] && c === this.perceivedCommands[i]) {
+                console.log("p" + i + " cmd " + c.obj.id + " " + c.obj + " (tp)");
+            }else if(c === this.trueCommands[i]) {
                 console.log("p" + i + " cmd " + c.obj.id + " " + c.obj + " (t)");
             }else if(c === this.perceivedCommands[i]) {
                 console.log("p" + i + " cmd " + c.obj.id + " " + c.obj + " (p)");

@@ -24,8 +24,7 @@ rollbackgameengine.components.removedAfter = {
 
 		//remove
 		if(entity._ttl <= 0) {
-			console.log("recycling");
-			//entity.world.recycleEntity(entity);
+			entity.world.recycleEntity(entity);
 		}
 	},
 	

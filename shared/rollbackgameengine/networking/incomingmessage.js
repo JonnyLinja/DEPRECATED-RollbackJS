@@ -122,6 +122,6 @@ rollbackgameengine.networking.IncomingMessage.prototype.nextSignedNumber = funct
 }
 
 rollbackgameengine.networking.IncomingMessage.prototype.finalUnsignedInteger = function() {
-	var bitsRemaining = (this.array.length * 8) - (this.arrayPosition * 8) - this.bitPosition;
+	var bitsRemaining = (this.array.length * rollbackgameengine.networking.messageBitSize) - (this.arrayPosition * rollbackgameengine.networking.messageBitSize) - (rollbackgameengine.networking.messageBitSize - this.bitPosition);
 	return this.nextUnsignedInteger(bitsRemaining);
 }

@@ -103,7 +103,6 @@ rollbackgameengine.networking.OutgoingMessage.prototype.addSignedNumber = functi
 }
 
 rollbackgameengine.networking.OutgoingMessage.prototype.addFinalUnsignedInteger = function(number) {
-	var bitsRemaining = (this.byteSize * 8) - (this.arrayPosition * 8) - this.bitPosition;
-	//console.log("BITS REMAINING " + bitsRemaining);
+	var bitsRemaining = (this.byteSize * rollbackgameengine.networking.messageBitSize) - (this.arrayPosition * rollbackgameengine.networking.messageBitSize) - (rollbackgameengine.networking.messageBitSize - this.bitPosition);
 	this.addUnsignedInteger(number, bitsRemaining);
 }
