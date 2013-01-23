@@ -51,7 +51,7 @@ rollbackgameengine.components.spritemap = {
 				}else {
 					//end animation
 					entity._spritemapAnimationPosition = -1;
-					position = 0;
+					return;
 				}
 			}
 
