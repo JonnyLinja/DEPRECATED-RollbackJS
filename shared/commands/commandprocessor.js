@@ -82,56 +82,56 @@ shooter.commands.CommandProcessor.prototype.update = function(command) {
 	if(angle >= 337 || angle <= 23) {
 		//left
 		if(isMoving) {
-			this.player.animateSpritemap(shooter.entities.human.animations.walkleft, true);
+			this.player.animateSpritemap(shooter.entities.human.animations.walkleft, true, 3);
 		}else {
 			this.player.spritemapAnimationFrame = shooter.entities.human.animations.faceleft;
 		}
 	}else if(angle < 67) {
 		//top left
 		if(isMoving) {
-			this.player.animateSpritemap(shooter.entities.human.animations.walkup, true);
+			this.player.animateSpritemap(shooter.entities.human.animations.walkup, true, 3);
 		}else {
 			this.player.spritemapAnimationFrame = shooter.entities.human.animations.faceup;
 		}
 	}else if(angle <= 113) {
 		//top
 		if(isMoving) {
-			this.player.animateSpritemap(shooter.entities.human.animations.walkup, true);
+			this.player.animateSpritemap(shooter.entities.human.animations.walkup, true, 3);
 		}else {
 			this.player.spritemapAnimationFrame = shooter.entities.human.animations.faceup;
 		}
 	}else if(angle < 157) {
 		//top right
 		if(isMoving) {
-			this.player.animateSpritemap(shooter.entities.human.animations.walkup, true);
+			this.player.animateSpritemap(shooter.entities.human.animations.walkup, true, 3);
 		}else {
 			this.player.spritemapAnimationFrame = shooter.entities.human.animations.faceup;
 		}
 	}else if(angle <= 203) {
 		//right
 		if(isMoving) {
-			this.player.animateSpritemap(shooter.entities.human.animations.walkright, true);
+			this.player.animateSpritemap(shooter.entities.human.animations.walkright, true, 3);
 		}else {
 			this.player.spritemapAnimationFrame = shooter.entities.human.animations.faceright;
 		}
 	}else if(angle < 247) {
 		//bottom right
 		if(isMoving) {
-			this.player.animateSpritemap(shooter.entities.human.animations.walkdown, true);
+			this.player.animateSpritemap(shooter.entities.human.animations.walkdown, true, 3);
 		}else {
 			this.player.spritemapAnimationFrame = shooter.entities.human.animations.facedown;
 		}
 	}else if(angle <= 293) {
 		//bottom
 		if(isMoving) {
-			this.player.animateSpritemap(shooter.entities.human.animations.walkdown, true);
+			this.player.animateSpritemap(shooter.entities.human.animations.walkdown, true, 3);
 		}else {
 			this.player.spritemapAnimationFrame = shooter.entities.human.animations.facedown;
 		}
 	}else if(angle < 337) {
 		//bottom left
 		if(isMoving) {
-			this.player.animateSpritemap(shooter.entities.human.animations.walkdown, true);
+			this.player.animateSpritemap(shooter.entities.human.animations.walkdown, true, 3);
 		}else {
 			this.player.spritemapAnimationFrame = shooter.entities.human.animations.facedown;
 		}

@@ -14,6 +14,7 @@ rollbackgameengine.components.spritemap = {
 		entity._spritemapAnimationFrame = 0;
 		entity.spritemapAnimation = null;
 		entity.spritemapAnimationIsLooping = false;
+		entity.spritemapAnimationRate = 1;
 		entity._spritemapAnimationPosition = 0;
 
 		//getters and setters
@@ -33,19 +34,29 @@ rollbackgameengine.components.spritemap = {
 			//increment array position
 			entity._spritemapAnimationPosition++;
 
+			//rate check
+			if(entity._spritemapAnimationPosition % entity.spritemapAnimationRate !== 0) {
+				return;
+			}
+
+			//get normalized position
+			var position = Math.floor(entity._spritemapAnimationPosition / entity.spritemapAnimationRate);
+
 			//max check
-			if(entity._spritemapAnimationPosition >= entity.spritemapAnimation.length) {
+			if(position >= entity.spritemapAnimation.length) {
 				if(entity.spritemapAnimationIsLooping) {
 					//set to beginning
 					entity._spritemapAnimationPosition = 0;
+					position = 0;
 				}else {
 					//end animation
 					entity._spritemapAnimationPosition = -1;
+					position = 0;
 				}
 			}
 
 			//get frame
-			entity._spritemapAnimationFrame = entity.spritemapAnimation[entity._spritemapAnimationPosition];
+			entity._spritemapAnimationFrame = entity.spritemapAnimation[position];
 		}
 	},
 
@@ -82,6 +93,16 @@ rollbackgameengine.components.spritemap = {
 		entity1.spritemapAnimation = entity2.spritemapAnimation;
 		entity1.spritemapAnimationIsLooping = entity2.spritemapAnimationIsLooping;
 		entity1._spritemapAnimationPosition = entity2._spritemapAnimationPosition;
+		entity1.spritemapAnimationRate = entity2.spritemapAnimationRate;
+	},
+
+	removedFromWorld : function(entity) {
+		//reset
+		entity._spritemapAnimationFrame = 0;
+		entity.spritemapAnimation = null;
+		entity.spritemapAnimationIsLooping = false;
+		entity.spritemapAnimationRate = 1;
+		entity._spritemapAnimationPosition = 0;
 	},
 
 	//this refers to entity
@@ -99,15 +120,29 @@ rollbackgameengine.components.spritemap = {
 	},
 
 	//this refers to entity
-	_animateSpritemap : function(array, loop) {
+	_animateSpritemap : function(array, loop, rate) {
+		//default loop
+		if(typeof loop === 'undefined') {
+			loop = false;
+		}
+
+		//default rate
+		if(typeof rate === 'undefined' || rate < 1) {
+			rate = 1;
+		}
+
 		//save loop
 		this.spritemapAnimationIsLooping = loop;
+
+		//save rate
+		this.spritemapAnimationRate = rate;
 
 		//detect already animating
 		if(this.spritemapAnimation === array) {
 			//start a stopped animation
 			if(this._spritemapAnimationPosition < 0) {
 				this._spritemapAnimationPosition = 0;
+				this._spritemapAnimationFrame = array[0];
 			}
 
 			//return
