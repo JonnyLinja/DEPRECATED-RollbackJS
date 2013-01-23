@@ -406,24 +406,11 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
     if(this.frameDifference > 1) {
         //send with frame
 
-        //todo - i think the bit calculation is off by 1
-
-        //declare variables
-        var frameBitSize = 1;
-        var frameValue = this.frameDifference - 1; //0 based
-        var byteSize = null;
-
-        //loop
-        while(frameValue > 1) {
-            //divide by 2
-            frameValue /= 2;
-
-            //increment bit size
-            frameBitSize++;
-        }
-
         //calculate bit size
-        byteSize = this.outgoingCommand.totalBitSize + frameBitSize;
+        var frameBitSize = rollbackgameengine.networking.calculateUnsignedIntegerBitSize(this.frameDifference-1);
+
+        //calculate byte size
+        var byteSize = this.outgoingCommand.totalBitSize + frameBitSize;
         byteSize /= 8;
         byteSize = Math.ceil(byteSize);
 
