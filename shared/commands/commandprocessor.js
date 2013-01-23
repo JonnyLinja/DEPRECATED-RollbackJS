@@ -72,11 +72,6 @@ shooter.commands.CommandProcessor.prototype.update = function(command) {
 		isMoving = true;
 	}
 
-	//hack - stops existing animation, make it more elegant later
-	if(!isMoving) {
-		this.player._spritemapAnimationPosition = -1;
-	}
-
 	//direction - using human animations since lazy -> eventually should store in 1 location or have 1 processor per player type
 	dx *= -1;
 	dy *= -1;

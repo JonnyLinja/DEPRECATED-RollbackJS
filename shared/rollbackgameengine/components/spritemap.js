@@ -11,10 +11,14 @@ rollbackgameengine.components.spritemap = {
 		entity.imagesrc = imagesrc;
 
 		//values
-		entity.spritemapAnimationFrame = 0;
+		entity._spritemapAnimationFrame = 0;
 		entity.spritemapAnimation = null;
 		entity.spritemapAnimationIsLooping = false;
 		entity._spritemapAnimationPosition = 0;
+
+		//getters and setters
+		entity.__defineGetter__("spritemapAnimationFrame",  this._getSpritemapAnimationFrame);
+		entity.__defineSetter__("spritemapAnimationFrame",  this._setSpritemapAnimationFrame);
 
 		//animate function
 		entity.animateSpritemap = this._animateSpritemap;
@@ -41,7 +45,7 @@ rollbackgameengine.components.spritemap = {
 			}
 
 			//get frame
-			entity.spritemapAnimationFrame = entity.spritemapAnimation[entity._spritemapAnimationPosition];
+			entity._spritemapAnimationFrame = entity.spritemapAnimation[entity._spritemapAnimationPosition];
 		}
 	},
 
@@ -59,7 +63,7 @@ rollbackgameengine.components.spritemap = {
 
 		//calculate offsets
 		var columns = Math.floor(entity.image.width / entity.width);
-		var offsetX = entity.spritemapAnimationFrame;
+		var offsetX = entity._spritemapAnimationFrame;
 		var offsetY = 0;
 		while(offsetX >= columns) {
 			offsetX -= columns;
@@ -74,10 +78,24 @@ rollbackgameengine.components.spritemap = {
 	rollback : function(entity1, entity2) {
 		//rollback values
 		entity1.imagesrc = entity2.imagesrc;
-		entity1.spritemapAnimationFrame = entity2.spritemapAnimationFrame;
+		entity1._spritemapAnimationFrame = entity2._spritemapAnimationFrame;
 		entity1.spritemapAnimation = entity2.spritemapAnimation;
 		entity1.spritemapAnimationIsLooping = entity2.spritemapAnimationIsLooping;
 		entity1._spritemapAnimationPosition = entity2._spritemapAnimationPosition;
+	},
+
+	//this refers to entity
+	_getSpritemapAnimationFrame : function() {
+		return this._spritemapAnimationFrame;
+	},
+
+	//this refers to entity
+	_setSpritemapAnimationFrame : function(f) {
+		//save frame
+		this._spritemapAnimationFrame = f;
+
+		//stop animations
+		this._spritemapAnimationPosition = -1;
 	},
 
 	//this refers to entity
@@ -98,7 +116,7 @@ rollbackgameengine.components.spritemap = {
 
 		//save properties
 		this.spritemapAnimation = array;
-		this.spritemapAnimationFrame = array[0];
+		this._spritemapAnimationFrame = array[0];
 		this._spritemapAnimationPosition = 0;
 	}
 }
