@@ -79,6 +79,40 @@ shooter.commands.CommandProcessor.prototype.update = function(command) {
 	if(angle < 0) {
 		angle += 360;
 	}
+
+	//4way
+	if(angle > 315 || angle <= 45) {
+		//left
+		if(isMoving) {
+			this.player.animateSpritemap(shooter.entities.human.animations.walkleft, true, 3);
+		}else {
+			this.player.spritemapAnimationFrame = shooter.entities.human.animations.faceleft;
+		}
+	}else if(angle <= 135) {
+		//top
+		if(isMoving) {
+			this.player.animateSpritemap(shooter.entities.human.animations.walkup, true, 3);
+		}else {
+			this.player.spritemapAnimationFrame = shooter.entities.human.animations.faceup;
+		}
+	}else if(angle <= 225) {
+		//right
+		if(isMoving) {
+			this.player.animateSpritemap(shooter.entities.human.animations.walkright, true, 3);
+		}else {
+			this.player.spritemapAnimationFrame = shooter.entities.human.animations.faceright;
+		}
+	}else {
+		//bottom
+		if(isMoving) {
+			this.player.animateSpritemap(shooter.entities.human.animations.walkdown, true, 3);
+		}else {
+			this.player.spritemapAnimationFrame = shooter.entities.human.animations.facedown;
+		}
+	}
+
+	//8way
+	/*
 	if(angle >= 337 || angle <= 23) {
 		//left
 		if(isMoving) {
@@ -140,6 +174,7 @@ shooter.commands.CommandProcessor.prototype.update = function(command) {
 		console.log("ERRAR");
 		//this.player.spritemapAnimationFrame = shooter.entities.human.animations.facedown;
 	}
+	*/
 }
 
 shooter.commands.CommandProcessor.prototype.rollback = function(p) {
