@@ -16,3 +16,13 @@ if(typeof window === 'undefined') {
 	//in theory abuses function only scope to create rollbackengine
 	var rollbackgameengine = require('./rollbackgameengine.js');
 }
+
+//easy to read combine script
+/*
+type shared\shooter.js shared\components\HP.js shared\components\velocity.js shared\components\removeoffscreen.js shared\components\damagedoncollision.js
+shared\components\explodesoncollision.js shared\entities\alien.js shared\entities\human.js shared\entities\bullet.js shared\entities\explosion.js
+shared\entities\wall.js shared\gamesimulation.js shared\commands\command.js shraed\commands\commandprocessor.js > game.js
+*/
+
+//combined script
+//type shared\shooter.js shared\components\HP.js shared\components\velocity.js shared\components\removeoffscreen.js shared\components\damagedoncollision.js shared\components\explodesoncollision.js shared\entities\alien.js shared\entities\human.js shared\entities\bullet.js shared\entities\explosion.js shared\entities\wall.js shared\gamesimulation.js shared\commands\command.js shared\commands\commandprocessor.js > game.js
