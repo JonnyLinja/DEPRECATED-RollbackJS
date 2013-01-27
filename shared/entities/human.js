@@ -25,5 +25,8 @@ shooter.entities.human = {
 		faceleft : 7,
 		walkup : [9, 10, 11],
 		faceup : 10
-	}
+	},
+
+	//sync
+	sync : rollbackgameengine.sync.singleton
 };

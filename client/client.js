@@ -55,7 +55,10 @@ document.onkeydown = function(e) {
 			break;
 		//space
 		case 32:
-			controller.trueSimulation.world.encode();
+			var outgoingMessage = new rollbackgameengine.networking.VariableMessage();
+			controller.trueSimulation.world.encode(outgoingMessage);
+			var incomingMessage = new rollbackgameengine.networking.IncomingMessage(outgoingMessage.constructMessage().arrayBuffer);
+			controller.trueSimulation.world.decode(incomingMessage);
 			break;
 	}
 }

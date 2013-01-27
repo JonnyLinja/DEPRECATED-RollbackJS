@@ -45,11 +45,13 @@ rollbackgameengine.components.frame = {
 	},
 
 	encode : function(entity, outgoingMessage) {
-		console.log("encode " + entity.x + "," + entity.y);
+		console.log("encode " + entity.x + ", " + entity.y);
+		outgoingMessage.addSignedNumber(entity.x, 2);
+		outgoingMessage.addSignedNumber(entity.y, 2);
 	},
 
 	decode : function(entity, incomingMessage) {
-
+		console.log("decode " + incomingMessage.nextSignedNumber(2) + ", " + incomingMessage.nextSignedNumber(2));
 	},
 
 	//this refers to entity

@@ -10,9 +10,6 @@ rollbackgameengine.Entity = function(factory) {
 
 	//reference to container world
 	this.world = null;
-
-	//syncable
-	this.syncable = true;
 }
 
 rollbackgameengine.Entity.prototype.loadComponents = function() {
@@ -83,7 +80,8 @@ rollbackgameengine.Entity.prototype.loadComponents = function() {
 		}
 
 		//sync
-		if(this.syncable && arguments[i].encode && arguments[i].decode) {
+		if(this.factory.sync && (this.factory.sync === rollbackgameengine.sync.singleton || this.factory.sync === rollbackgameengine.sync.sometimes || this.factory.sync === rollbackgameengine.sync.often)
+			&& arguments[i].encode && arguments[i].decode) {
 			//create list
 			if(!this.factory._syncComponents) {
 				this.factory._syncComponents = new rollbackgameengine.datastructures.SinglyLinkedList();

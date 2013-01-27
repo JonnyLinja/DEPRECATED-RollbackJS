@@ -13,5 +13,8 @@ shooter.entities.alien = {
 			rollbackgameengine.components.preventOverlap.load(entity, shooter.entities.human, shooter.entities.wall),
 			rollbackgameengine.components.spritemap.load(entity, "images/aliengun.png")
 		);
-	}
+	},
+
+	//sync
+	sync : rollbackgameengine.sync.singleton
 };

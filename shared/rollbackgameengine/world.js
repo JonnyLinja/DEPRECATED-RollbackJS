@@ -414,6 +414,27 @@ rollbackgameengine.World.prototype.encode = function(outgoingMessage) {
 	}
 }
 
+//todo - have this actually create/remove stuff
 rollbackgameengine.World.prototype.decode = function(incomingMessage) {
-	
+	//declare variables
+	var currentOuterList = this.entitiesList.head;
+	var currentInnerList = null;
+
+	//loop through factories
+	while(currentOuterList) {
+		//set head
+		currentInnerList = currentOuterList.head;
+
+		//loop through entities
+		while(currentInnerList) {
+			//update
+			currentInnerList.decode(incomingMessage);
+
+			//increment
+			currentInnerList = currentInnerList.nextEntity;
+		}
+
+		//increment
+		currentOuterList = currentOuterList.nextEntityList;
+	}
 }
