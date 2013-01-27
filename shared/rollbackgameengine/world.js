@@ -397,16 +397,50 @@ rollbackgameengine.World.prototype.encode = function(outgoingMessage) {
 
 	//loop through factories
 	while(currentOuterList) {
-		//set head
-		currentInnerList = currentOuterList.head;
+		//check encode
+		if(currentOuterList.factory.sync) {
+			console.log("encode sync type found, count " + currentOuterList.count);
+			//set head
+			currentInnerList = currentOuterList.head;
 
-		//loop through entities
-		while(currentInnerList) {
-			//update
-			currentInnerList.encode(outgoingMessage);
+			//encode type
+			if(currentOuterList.factory.sync === rollbackgameengine.sync.sometimes) {
+				//sometimes
+				if(currentInnerList) {
+					//at least one
 
-			//increment
-			currentInnerList = currentInnerList.nextEntity;
+					console.log("sometimes with count");
+
+					//boolean
+					outgoingMessage.addBoolean(true);
+
+					//count
+					outgoingMessage.addUnsignedInteger(currentOuterList.count);
+				}else {
+					//none
+
+					console.log("sometimes false");
+
+					//boolean
+					outgoingMessage.addBoolean(false);
+				}
+			}else if(currentOuterList.factory.sync === rollbackgameengine.sync.often) {
+				//often
+
+				console.log("often count");
+
+				//count
+				outgoingMessage.addUnsignedInteger(currentOuterList.count);
+			}
+
+			//loop through entities
+			while(currentInnerList) {
+				//encode
+				currentInnerList.encode(outgoingMessage);
+
+				//increment
+				currentInnerList = currentInnerList.nextEntity;
+			}
 		}
 
 		//increment
@@ -419,22 +453,78 @@ rollbackgameengine.World.prototype.decode = function(incomingMessage) {
 	//declare variables
 	var currentOuterList = this.entitiesList.head;
 	var currentInnerList = null;
+	var count = 0;
+	var temp = null;
 
 	//loop through factories
 	while(currentOuterList) {
-		//set head
-		currentInnerList = currentOuterList.head;
+		//check encode
+		if(currentOuterList.factory.sync) {
+			console.log("decode sync type found");
+			//set head
+			currentInnerList = currentOuterList.head;
 
-		//loop through entities
-		while(currentInnerList) {
-			//update
-			currentInnerList.decode(incomingMessage);
+			//encode type
+			if(currentOuterList.factory.sync === rollbackgameengine.sync.singleton) {
+				//singleton
 
-			//increment
-			currentInnerList = currentInnerList.nextEntity;
+				//loop through entities
+				while(currentInnerList) {
+					console.log("decoding singleton");
+					//decode
+					currentInnerList.decode(incomingMessage);
+
+					//increment
+					currentInnerList = currentInnerList.nextEntity;
+				}
+			}else if((currentOuterList.factory.sync === rollbackgameengine.sync.sometimes && incomingMessage.nextBoolean()) || currentOuterList.factory.sync === rollbackgameengine.sync.often) {
+				//sometimes or often
+
+				//count
+				count = incomingMessage.nextUnsignedInteger();
+				console.log("decode count " + count);
+
+				//loop by count
+				for(var i=0; i<count; i++) {
+					if(currentInnerList) {
+						//exists
+
+						//decode
+						console.log("decode normal");
+						currentInnerList.decode(incomingMessage);
+
+						//increment
+						currentInnerList = currentInnerList.nextEntity;
+					}else {
+						//new
+
+						//create new
+						temp = this.addEntity(currentOuterList.factory);
+
+						//decode
+						console.log("decode new");
+						temp.decode(incomingMessage);
+					}
+				}
+
+				//loop recycle remaining
+				while(currentInnerList) {
+					//recycle
+					console.log("decode recycle");
+					this.recycleEntity(currentInnerList);
+
+					//increment
+					currentInnerList = currentInnerList.nextEntity;
+				}
+			}
 		}
 
 		//increment
 		currentOuterList = currentOuterList.nextEntityList;
 	}
+
+	//update lists
+	this.updateLists();
+
+	//set frame?
 }

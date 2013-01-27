@@ -15,6 +15,9 @@ rollbackgameengine.datastructures.DoublyLinkedList = function(prev, next) {
 	//declare head and tail
 	this.head = null;
 	this.tail = null;
+
+	//count
+	this.count = 0;
 }
 
 //inserts at the head
@@ -22,6 +25,7 @@ rollbackgameengine.datastructures.DoublyLinkedList.prototype.push = function(o) 
 	//create node
 	o[this.prev] = null;
 
+	//connect
 	if(!this.head) {
 		//empty
 		this.head = o;
@@ -33,6 +37,9 @@ rollbackgameengine.datastructures.DoublyLinkedList.prototype.push = function(o) 
 		this.head.prev = o;
 		this.head = o;
 	}
+
+	//count
+	this.count++;
 }
 
 //removes head
@@ -45,6 +52,7 @@ rollbackgameengine.datastructures.DoublyLinkedList.prototype.pop = function() {
 		//increment head
 		this.head = this.head[this.next];
 
+		//remove connections
 		if(!this.head) {
 			//if list is now empty, reset tail
 			this.tail = null;
@@ -56,6 +64,9 @@ rollbackgameengine.datastructures.DoublyLinkedList.prototype.pop = function() {
 		//remove node
 		o[this.prev] = null;
 		o[this.next] = null;
+
+		//count
+		this.count--;
 
 		//return
 		return o;
@@ -70,6 +81,7 @@ rollbackgameengine.datastructures.DoublyLinkedList.prototype.add = function(o) {
 	//create node
 	o[this.next] = null;
 
+	//connect
 	if(!this.tail) {
 		//empty
 		this.head = o;
@@ -81,6 +93,9 @@ rollbackgameengine.datastructures.DoublyLinkedList.prototype.add = function(o) {
 		o[this.prev] = this.tail;
 		this.tail = o;
 	}
+
+	//count
+	this.count++;
 }
 
 //inserts before
@@ -100,6 +115,9 @@ rollbackgameengine.datastructures.DoublyLinkedList.prototype.insertBefore = func
 		//connect left node
 		o[this.prev][this.next] = o;
 	}
+
+	//count
+	this.count++;
 }
 
 //inserts after
@@ -119,6 +137,9 @@ rollbackgameengine.datastructures.DoublyLinkedList.prototype.insertAfter = funct
 		//connect right node
 		o[this.next][this.prev] = o;
 	}
+
+	//count
+	this.count++;
 }
 
 //remove from list
@@ -132,6 +153,7 @@ rollbackgameengine.datastructures.DoublyLinkedList.prototype.remove = function(o
 		//first link
 		o[this.prev][this.next] = o[this.next];
 
+		//remove connections
 		if(o === this.tail) {
 			//tail
 			this.tail = o[this.prev];
@@ -144,6 +166,9 @@ rollbackgameengine.datastructures.DoublyLinkedList.prototype.remove = function(o
 		o[this.prev] = null;
 		o[this.next] = null;
 		o = null;
+
+		//count
+		this.count--;
 	}
 }
 

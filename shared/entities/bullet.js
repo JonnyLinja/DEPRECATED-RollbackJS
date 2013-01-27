@@ -16,6 +16,9 @@ shooter.entities.bullet = {
 		);
 	},
 
+	//sync
+	sync : rollbackgameengine.sync.sometimes,
+
 	//animations
 	animations : {
 		spin : [

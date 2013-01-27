@@ -16,7 +16,7 @@ rollbackgameengine.networking.VariableMessage.prototype.constructMessage = funct
 
 	//loop add commands
 	var current = this.inputs.pop();
-	while(current) {
+	while(current !== null) {
 		//determine type
 		if(typeof current === 'boolean') {
 			//boolean
