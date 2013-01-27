@@ -389,3 +389,31 @@ rollbackgameengine.World.prototype.rollback = function(world) {
 	//rollback frame
 	this.frame = world.frame;
 }
+
+rollbackgameengine.World.prototype.encode = function(outgoingMessage) {
+	//declare variables
+	var currentOuterList = this.entitiesList.head;
+	var currentInnerList = null;
+
+	//loop through factories
+	while(currentOuterList) {
+		//set head
+		currentInnerList = currentOuterList.head;
+
+		//loop through entities
+		while(currentInnerList) {
+			//update
+			currentInnerList.encode(outgoingMessage);
+
+			//increment
+			currentInnerList = currentInnerList.nextEntity;
+		}
+
+		//increment
+		currentOuterList = currentOuterList.nextEntityList;
+	}
+}
+
+rollbackgameengine.World.prototype.decode = function(incomingMessage) {
+	
+}

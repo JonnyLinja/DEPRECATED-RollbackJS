@@ -44,6 +44,14 @@ rollbackgameengine.components.frame = {
 		entity1.moveY = entity2.moveY;
 	},
 
+	encode : function(entity, outgoingMessage) {
+		console.log("encode " + entity.x + "," + entity.y);
+	},
+
+	decode : function(entity, incomingMessage) {
+
+	},
+
 	//this refers to entity
 	_right : function() {
 		return this.x + this.width;

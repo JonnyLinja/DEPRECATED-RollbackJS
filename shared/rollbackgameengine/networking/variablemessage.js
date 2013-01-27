@@ -1,6 +1,8 @@
 
 //==================================================//
 // rollbackgameengine/networking/variablemessage.js
+// intended for use by the server
+// so less focus on garbage collection
 //==================================================//
 
 rollbackgameengine.networking.VariableMessage = function(byteSize) {
