@@ -90,3 +90,11 @@ shooter.GameSimulation.prototype.rollback = function(gamesimulation) {
 	//rollback world
 	this.world.rollback(gamesimulation.world);
 }
+
+shooter.GameSimulation.prototype.encode = function(m) {
+	this.world.encode(m);
+}
+
+shooter.GameSimulation.prototype.decode = function(m) {
+	this.world.decode(m);
+}
