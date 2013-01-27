@@ -13,6 +13,9 @@ shooter.entities.explosion = {
 		);
 	},
 
+	//sync
+	sync : rollbackgameengine.sync.sometimes,
+
 	//animations
 	animations : {
 		explode : [
