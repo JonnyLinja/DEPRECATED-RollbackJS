@@ -1,45 +1,45 @@
 <!DOCTYPE html5>
 <html>
-    <head>
-    	<script src="../shared/rollbackgameengine/engine.js" type="text/javascript"></script>
-        <script src="../shared/rollbackgameengine/id.js" type="text/javascript"></script>
-        <script src="../shared/rollbackgameengine/networking/message.js" type="text/javascript"></script>
-        <script src="../shared/rollbackgameengine/networking/incomingmessage.js" type="text/javascript"></script>
-        <script src="../shared/rollbackgameengine/networking/outgoingmessage.js" type="text/javascript"></script>
-        <script src="../shared/rollbackgameengine/networking/variablemessage.js" type="text/javascript"></script>
-        <script src="../shared/rollbackgameengine/datastructures/singlylinkedlist.js" type="text/javascript"></script>
-        <script src="../shared/rollbackgameengine/datastructures/doublylinkedlist.js" type="text/javascript"></script>
-        <script src="../shared/rollbackgameengine/components/frame.js" type="text/javascript"></script>
-        <script src="../shared/rollbackgameengine/components/collision.js" type="text/javascript"></script>
-        <script src="../shared/rollbackgameengine/components/spritemap.js" type="text/javascript"></script>
-        <script src="../shared/rollbackgameengine/components/preventoverlap.js" type="text/javascript"></script>
-        <script src="../shared/rollbackgameengine/components/removedafter.js" type="text/javascript"></script>
-        <script src="../shared/rollbackgameengine/pool.js" type="text/javascript"></script>
-        <script src="../shared/rollbackgameengine/entity.js" type="text/javascript"></script>
-        <script src="../shared/rollbackgameengine/world.js" type="text/javascript"></script>
-        <script src="../shared/shooter.js" type="text/javascript"></script>
-        <script src="../shared/components/HP.js" type="text/javascript"></script>
-        <script src="../shared/components/velocity.js" type="text/javascript"></script>
-        <script src="../shared/components/removeoffscreen.js" type="text/javascript"></script>
-        <script src="../shared/components/damagedoncollision.js" type="text/javascript"></script>
-        <script src="../shared/components/explodesoncollision.js" type="text/javascript"></script>
-        <script src="../shared/entities/alien.js" type="text/javascript"></script>
-        <script src="../shared/entities/human.js" type="text/javascript"></script>
-        <script src="../shared/entities/bullet.js" type="text/javascript"></script>
-        <script src="../shared/entities/explosion.js" type="text/javascript"></script>
-        <script src="../shared/entities/wall.js" type="text/javascript"></script>
-        <script src="../shared/gamesimulation.js" type="text/javascript"></script>
-        <script src="../shared/commands/command.js" type="text/javascript"></script>
-        <script src="../shared/commands/commandprocessor.js" type="text/javascript"></script>
-        <script src="rollbackclientengine/engine.js" type="text/javascript"></script>
-        <script src="rollbackclientengine/connection.js" type="text/javascript"></script>
-        <script src="rollbackclientengine/controllers/playcontroller.js" type="text/javascript"></script>
-        <script src="client.js" type="text/javascript"></script>
+	<head>
+		<script src="../shared/rollbackgameengine/engine.js" type="text/javascript"></script>
+		<script src="../shared/rollbackgameengine/id.js" type="text/javascript"></script>
+		<script src="../shared/rollbackgameengine/networking/message.js" type="text/javascript"></script>
+		<script src="../shared/rollbackgameengine/networking/incomingmessage.js" type="text/javascript"></script>
+		<script src="../shared/rollbackgameengine/networking/outgoingmessage.js" type="text/javascript"></script>
+		<script src="../shared/rollbackgameengine/networking/variablemessage.js" type="text/javascript"></script>
+		<script src="../shared/rollbackgameengine/datastructures/singlylinkedlist.js" type="text/javascript"></script>
+		<script src="../shared/rollbackgameengine/datastructures/doublylinkedlist.js" type="text/javascript"></script>
+		<script src="../shared/rollbackgameengine/components/frame.js" type="text/javascript"></script>
+		<script src="../shared/rollbackgameengine/components/collision.js" type="text/javascript"></script>
+		<script src="../shared/rollbackgameengine/components/spritemap.js" type="text/javascript"></script>
+		<script src="../shared/rollbackgameengine/components/preventoverlap.js" type="text/javascript"></script>
+		<script src="../shared/rollbackgameengine/components/removedafter.js" type="text/javascript"></script>
+		<script src="../shared/rollbackgameengine/pool.js" type="text/javascript"></script>
+		<script src="../shared/rollbackgameengine/entity.js" type="text/javascript"></script>
+		<script src="../shared/rollbackgameengine/world.js" type="text/javascript"></script>
+		<script src="../shared/shooter.js" type="text/javascript"></script>
+		<script src="../shared/components/HP.js" type="text/javascript"></script>
+		<script src="../shared/components/velocity.js" type="text/javascript"></script>
+		<script src="../shared/components/removeoffscreen.js" type="text/javascript"></script>
+		<script src="../shared/components/damagedoncollision.js" type="text/javascript"></script>
+		<script src="../shared/components/explodesoncollision.js" type="text/javascript"></script>
+		<script src="../shared/entities/alien.js" type="text/javascript"></script>
+		<script src="../shared/entities/human.js" type="text/javascript"></script>
+		<script src="../shared/entities/bullet.js" type="text/javascript"></script>
+		<script src="../shared/entities/explosion.js" type="text/javascript"></script>
+		<script src="../shared/entities/wall.js" type="text/javascript"></script>
+		<script src="../shared/gamesimulation.js" type="text/javascript"></script>
+		<script src="../shared/commands/command.js" type="text/javascript"></script>
+		<script src="../shared/commands/commandprocessor.js" type="text/javascript"></script>
+		<script src="rollbackclientengine/engine.js" type="text/javascript"></script>
+		<script src="rollbackclientengine/connection.js" type="text/javascript"></script>
+		<script src="rollbackclientengine/controllers/playcontroller.js" type="text/javascript"></script>
+		<script src="client.js" type="text/javascript"></script>
 
-    </head>
-    <body>
-        <canvas id="testCanvas" width="800" height="640" style="display:block;margin-left:auto;margin-right:auto;background-color:#000000;">
-            Your browser is too fucking old
-        </canvas>
-    </body>
+	</head>
+	<body>
+		<canvas id="testCanvas" width="800" height="640" style="display:block;margin-left:auto;margin-right:auto;background-color:#000000;">
+			Your browser is too fucking old
+		</canvas>
+	</body>
 </html>
