@@ -45,7 +45,6 @@ rollbackgameengine.components.frame = {
 	},
 
 	encode : function(entity, outgoingMessage) {
-		console.log("encode " + entity.x + ", " + entity.y);
 		outgoingMessage.addSignedNumber(entity.x, 2);
 		outgoingMessage.addSignedNumber(entity.y, 2);
 	},
@@ -53,7 +52,6 @@ rollbackgameengine.components.frame = {
 	decode : function(entity, incomingMessage) {
 		entity.x = incomingMessage.nextSignedNumber(2);
 		entity.y = incomingMessage.nextSignedNumber(2);
-		console.log("decode " + entity.x + ", " + entity.y);
 	},
 
 	//this refers to entity

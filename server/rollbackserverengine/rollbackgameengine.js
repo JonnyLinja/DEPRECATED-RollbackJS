@@ -1,4 +1,3 @@
-
 //==================================================//
 // rollbackgameengine/engine.js
 //==================================================//
@@ -15,6 +14,7 @@ if(typeof window === 'undefined') {
 	module.exports = rollbackgameengine;
 }
 
+//easy to read combine script
 /*
 type shared\rollbackgameengine\engine.js shared\rollbackgameengine\id.js shared\rollbackgameengine\sync.js shared\rollbackgameengine\networking\message.js
 shared\rollbackgameengine\networking\incomingmessage.js shared\rollbackgameengine\networking\outgoingmessage.js
@@ -24,6 +24,9 @@ shared\rollbackgameengine\components\collision.js shared\rollbackgameengine\comp
 shared\rollbackgameengine\components\preventoverlap.js shared\rollbackgameengine\components\removedafter.js
 shared\rollbackgameengine\pool.js shared\rollbackgameengine\entity.js shared\rollbackgameengine\world.js > rollbackgameengine.js
 */
+
+//combined script
+//type shared\rollbackgameengine\engine.js shared\rollbackgameengine\id.js shared\rollbackgameengine\sync.js shared\rollbackgameengine\networking\message.js shared\rollbackgameengine\networking\incomingmessage.js shared\rollbackgameengine\networking\outgoingmessage.js shared\rollbackgameengine\networking\variablemessage.js shared\rollbackgameengine\datastructures\singlylinkedlist.js shared\rollbackgameengine\datastructures\doublylinkedlist.js shared\rollbackgameengine\components\frame.js shared\rollbackgameengine\components\collision.js shared\rollbackgameengine\components\spritemap.js shared\rollbackgameengine\components\preventoverlap.js shared\rollbackgameengine\components\removedafter.js shared\rollbackgameengine\pool.js shared\rollbackgameengine\entity.js shared\rollbackgameengine\world.js > rollbackgameengine.js
 
 //==================================================//
 // rollbackgameengine/id.js
@@ -1072,13 +1075,13 @@ rollbackgameengine.components.frame = {
 	},
 
 	encode : function(entity, outgoingMessage) {
-		console.log("encode " + entity.x + ", " + entity.y);
 		outgoingMessage.addSignedNumber(entity.x, 2);
 		outgoingMessage.addSignedNumber(entity.y, 2);
 	},
 
 	decode : function(entity, incomingMessage) {
-		console.log("decode " + incomingMessage.nextSignedNumber(2) + ", " + incomingMessage.nextSignedNumber(2));
+		entity.x = incomingMessage.nextSignedNumber(2);
+		entity.y = incomingMessage.nextSignedNumber(2);
 	},
 
 	//this refers to entity
@@ -1484,6 +1487,14 @@ rollbackgameengine.components.removedAfter = {
 	rollback : function(entity1, entity2) {
 		//rollback values
 		entity1._ttl = entity2._ttl;
+	},
+
+	encode : function(entity, outgoingMessage) {
+		outgoingMessage.addUnsignedInteger(entity._ttl, rollbackgameengine.networking.calculateUnsignedIntegerBitSize(entity.factory._maxttl));
+	},
+
+	decode : function(entity, incomingMessage) {
+		entity._ttl = incomingMessage.nextUnsignedInteger(rollbackgameengine.networking.calculateUnsignedIntegerBitSize(entity.factory._maxttl));
 	}
 }
 
@@ -2166,7 +2177,6 @@ rollbackgameengine.World.prototype.encode = function(outgoingMessage) {
 	while(currentOuterList) {
 		//check encode
 		if(currentOuterList.factory.sync) {
-			console.log("encode sync type found, count " + currentOuterList.count);
 			//set head
 			currentInnerList = currentOuterList.head;
 
@@ -2176,8 +2186,6 @@ rollbackgameengine.World.prototype.encode = function(outgoingMessage) {
 				if(currentInnerList) {
 					//at least one
 
-					console.log("sometimes with count");
-
 					//boolean
 					outgoingMessage.addBoolean(true);
 
@@ -2186,15 +2194,11 @@ rollbackgameengine.World.prototype.encode = function(outgoingMessage) {
 				}else {
 					//none
 
-					console.log("sometimes false");
-
 					//boolean
 					outgoingMessage.addBoolean(false);
 				}
 			}else if(currentOuterList.factory.sync === rollbackgameengine.sync.often) {
 				//often
-
-				console.log("often count");
 
 				//count
 				outgoingMessage.addUnsignedInteger(currentOuterList.count);
@@ -2227,7 +2231,6 @@ rollbackgameengine.World.prototype.decode = function(incomingMessage) {
 	while(currentOuterList) {
 		//check encode
 		if(currentOuterList.factory.sync) {
-			console.log("decode sync type found");
 			//set head
 			currentInnerList = currentOuterList.head;
 
@@ -2237,19 +2240,28 @@ rollbackgameengine.World.prototype.decode = function(incomingMessage) {
 
 				//loop through entities
 				while(currentInnerList) {
-					console.log("decoding singleton");
 					//decode
 					currentInnerList.decode(incomingMessage);
 
 					//increment
 					currentInnerList = currentInnerList.nextEntity;
 				}
-			}else if((currentOuterList.factory.sync === rollbackgameengine.sync.sometimes && incomingMessage.nextBoolean()) || currentOuterList.factory.sync === rollbackgameengine.sync.often) {
+			}else if(currentOuterList.factory.sync === rollbackgameengine.sync.sometimes && !incomingMessage.nextBoolean()) {
+				//sometimes with no elements
+
+				//loop recycle remaining
+				while(currentInnerList) {
+					//recycle
+					this.recycleEntity(currentInnerList);
+
+					//increment
+					currentInnerList = currentInnerList.nextEntity;
+				}
+			}else if(currentOuterList.factory.sync === rollbackgameengine.sync.sometimes || currentOuterList.factory.sync === rollbackgameengine.sync.often) {
 				//sometimes or often
 
 				//count
 				count = incomingMessage.nextUnsignedInteger();
-				console.log("decode count " + count);
 
 				//loop by count
 				for(var i=0; i<count; i++) {
@@ -2257,7 +2269,6 @@ rollbackgameengine.World.prototype.decode = function(incomingMessage) {
 						//exists
 
 						//decode
-						console.log("decode normal");
 						currentInnerList.decode(incomingMessage);
 
 						//increment
@@ -2269,7 +2280,6 @@ rollbackgameengine.World.prototype.decode = function(incomingMessage) {
 						temp = this.addEntity(currentOuterList.factory);
 
 						//decode
-						console.log("decode new");
 						temp.decode(incomingMessage);
 					}
 				}
@@ -2277,7 +2287,6 @@ rollbackgameengine.World.prototype.decode = function(incomingMessage) {
 				//loop recycle remaining
 				while(currentInnerList) {
 					//recycle
-					console.log("decode recycle");
 					this.recycleEntity(currentInnerList);
 
 					//increment

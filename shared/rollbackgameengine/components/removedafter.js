@@ -31,5 +31,13 @@ rollbackgameengine.components.removedAfter = {
 	rollback : function(entity1, entity2) {
 		//rollback values
 		entity1._ttl = entity2._ttl;
+	},
+
+	encode : function(entity, outgoingMessage) {
+		outgoingMessage.addUnsignedInteger(entity._ttl, rollbackgameengine.networking.calculateUnsignedIntegerBitSize(entity.factory._maxttl));
+	},
+
+	decode : function(entity, incomingMessage) {
+		entity._ttl = incomingMessage.nextUnsignedInteger(rollbackgameengine.networking.calculateUnsignedIntegerBitSize(entity.factory._maxttl));
 	}
 }
