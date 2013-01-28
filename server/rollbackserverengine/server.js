@@ -1,8 +1,9 @@
 
-//todo - consider making a connection object to hide stuff
-//not sure how easy/useful it would be though
+//todo - make this export something that is passed in the simulation and the command object
+//for testing purposes everything is hardcoded in atm
 
 var rollbackgameengine = require ("./rollbackgameengine");
+var game = require("./game.js");
 var WebSocketServer = require('ws').Server;
 var wss = new WebSocketServer({port: 8080});
 var p1 = null;
@@ -10,6 +11,7 @@ var p2 = null;
 var p1Delay = null;
 var p2Delay = null;
 var started = false;
+var sim = null;
 
 wss.on('connection', function(ws) {
 	if(!p1) {
@@ -39,29 +41,63 @@ wss.on('connection', function(ws) {
 
 		//console.log("echoing: " + data + " with type " + typeof data + " and length " + data.byteLength);
 
+		//get message
+		var incomingMessage = new rollbackgameengine.networking.IncomingMessage();
+		incomingMessage.setArray(data);
+
 		if(p1 && ws === p1) {
 			if(!p1Delay) {
 				//parse delay
-				var m = new rollbackgameengine.networking.IncomingMessage();
-				m.setArray(data);
-				p1Delay = m.nextUnsignedInteger(7);
+				p1Delay = incomingMessage.nextUnsignedInteger(7);
 
 				console.log("p1 ready with initial delay " + p1Delay);
 			}else if(p2) {
+				//parse command
+				var c = new game.commands.Command();
+				c.loadFromMessage(incomingMessage);
+				
+				//execute
+				sim.execute(0, c);
+
+				//skipped
+				var skipped = incomingMessage.finalUnsignedInteger();
+
+				//outgoing - LAZY AND HARDCODING SIZE 7
+				//todo - make this variable length
+				var outgoingMessage = new rollbackgameengine.networking.OutgoingMessage(7);
+				outgoingMessage.addBoolean(false); //is not a sync message
+				c.addDataToMessage(outgoingMessage);
+				outgoingMessage.addFinalUnsignedInteger(skipped);
+
 				//echo
-				p2.send(data, {binary:true, mask:false});
+				p2.send(outgoingMessage.array, {binary:true, mask:false});
 			}
 		}else if(p2 && ws === p2) {
 			if(!p2Delay) {
 				//parse delay
-				var m = new rollbackgameengine.networking.IncomingMessage();
-				m.setArray(data);
-				p2Delay = m.nextUnsignedInteger(7);
+				p2Delay = incomingMessage.nextUnsignedInteger(7);
 
 				console.log("p2 ready with initial delay " + p2Delay);
 			}else if(p1) {
+				//parse command
+				var c = new game.commands.Command();
+				c.loadFromMessage(incomingMessage);
+
+				//execute
+				sim.execute(1, c);
+
+				//skipped
+				var skipped = incomingMessage.finalUnsignedInteger();
+
+				//outgoing - LAZY AND HADRCODING SIZE 7
+				//todo - make this variable length
+				var outgoingMessage = new rollbackgameengine.networking.OutgoingMessage(7);
+				outgoingMessage.addBoolean(false); //is not a sync message
+				c.addDataToMessage(outgoingMessage);
+				outgoingMessage.addFinalUnsignedInteger(skipped);
+
 				//echo
-				p1.send(data, {binary:true, mask:false});
+				p1.send(outgoingMessage.array, {binary:true, mask:false});
 			}
 		}
 
@@ -69,6 +105,9 @@ wss.on('connection', function(ws) {
 		if(!started && p1Delay && p2Delay) {
 			//set started
 			started = true;
+
+			//create new sim
+			sim = new game.GameSimulation();
 
 			//create message
 			var outgoingMessage = new rollbackgameengine.networking.OutgoingMessage(1);

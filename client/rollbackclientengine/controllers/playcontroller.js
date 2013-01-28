@@ -687,7 +687,7 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
 
 		//set started
 		this.started = true;
-	}else {
+	}else if(!incomingMessage.nextBoolean()) {
 		//game command
 
 		//todo - message type - differentiate command and dump
@@ -774,6 +774,13 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
 			console.log("Received Enemy Command");
 			this.displayCommands();
 		}
+	}else {
+		//sync command
+
+		console.log("sync c");
+
+		//temp just update true
+		this.trueSimulation.decode(incomingMessage);
 	}
 }
 
