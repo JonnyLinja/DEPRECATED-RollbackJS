@@ -572,8 +572,8 @@ rollbackclientengine.controllers.PlayController.prototype.render = function(canv
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 		//render
-		//this.trueSimulation.render(ctx); //debug
-		this.perceivedSimulation.render(ctx);
+		this.trueSimulation.render(ctx); //debug
+		//this.perceivedSimulation.render(ctx);
 
 		if(!this.logsDisabled) {
 			console.log(">RENDERING WITH TRUE " + this.trueSimulation.frame + " PERCEIVED " + this.perceivedSimulation.frame);
