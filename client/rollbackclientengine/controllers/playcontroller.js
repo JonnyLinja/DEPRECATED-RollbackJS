@@ -776,9 +776,7 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
 		}
 	}else {
 		//sync command
-
-		console.log("sync c");
-
+		
 		//temp just update true
 		this.trueSimulation.decode(incomingMessage);
 	}
