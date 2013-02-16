@@ -55,10 +55,14 @@ document.onkeydown = function(e) {
 			break;
 		//space
 		case 32:
-			var outgoingMessage = new rollbackgameengine.networking.VariableMessage();
-			controller.trueSimulation.world.encode(outgoingMessage);
-			var incomingMessage = new rollbackgameengine.networking.IncomingMessage(outgoingMessage.constructMessage().arrayBuffer);
-			controller.trueSimulation.world.decode(incomingMessage);
+			//var outgoingMessage = new rollbackgameengine.networking.VariableMessage();
+			//controller.trueSimulation.world.encode(outgoingMessage);
+			//var incomingMessage = new rollbackgameengine.networking.IncomingMessage(outgoingMessage.constructMessage().arrayBuffer);
+			//controller.trueSimulation.world.decode(incomingMessage);
+
+			var syncCalc = new rollbackgameengine.sync.SyncCalculator();
+			controller.trueSimulation.world.encode(syncCalc);
+			console.log(syncCalc.calculateSyncValue());
 			break;
 	}
 }
