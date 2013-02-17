@@ -31,7 +31,8 @@
 
 //eventually pass canvas in here - needed to obtain width and height to determine max sync value
 //frame delay must be between 0 and 127 inclusive
-rollbackclientengine.controllers.PlayController = function(url, Simulation, Command, frameRate, frameDelay, playerCount, minimumUpdateFrame) {
+//url, Simulation, Command, frameRate, frameDelay, playerCount, minimumUpdateFrame
+rollbackclientengine.controllers.PlayController = function(options) {
 	//debug logging
 	this.logsDisabled = true; //false
 	this.commandID = new Array();
@@ -40,57 +41,57 @@ rollbackclientengine.controllers.PlayController = function(url, Simulation, Comm
 	this.displayedMessage = false;
 
 	//frame rate default
-	if(typeof frameRate === 'undefined') {
-		frameRate = 33; //33
+	if(typeof options.frameRate === 'undefined') {
+		options.frameRate = 33; //33
 	}
 
 	//frame delay default
-	if(typeof frameDelay === 'undefined') {
-		frameDelay = 2; //2
+	if(typeof options.frameDelay === 'undefined') {
+		options.frameDelay = 2; //2
 	}
 
 	//player count default
-	if(typeof playerCount === 'undefined') {
-		playerCount = 2;
+	if(typeof options.playerCount === 'undefined') {
+		options.playerCount = 2;
 	}
 
 	//minimum update frame default
-	if(typeof minimumUpdateFrame === 'undefined') {
-		minimumUpdateFrame = 1;
+	if(typeof options.minimumUpdateFrame === 'undefined') {
+		options.minimumUpdateFrame = 1;
 	}
 
 	//commands
-	this.CommandObject = Command;
+	this.CommandObject = options.Command;
 	rollbackgameengine.giveID(this.CommandObject); //id for pooling usage on the object itself
 	this.outgoingCommand = this._getNewCommand(); //modified by player inputs
 	this.commands = new Array();
 	this.trueCommands = new Array();
 	this.perceivedCommands = new Array();
-	for(var i=0; i<playerCount; i++) {
+	for(var i=0; i<options.playerCount; i++) {
 		this.commands[i] = new rollbackgameengine.datastructures.SinglyLinkedList();
 		this.trueCommands[i] = null;
 		this.perceivedCommands[i] = null;
 	}
 
 	//simulations
-	this.trueSimulation = new Simulation();
+	this.trueSimulation = new options.Simulation();
 	this.trueSimulation.world.isTrue = true; //temp debug
-	this.perceivedSimulation = new Simulation();
+	this.perceivedSimulation = new options.Simulation();
 	this.perceivedSimulation.world.isTrue = false; //temp debug
 
 	//frame delay
-	this.frameDelay = frameDelay + 1;
+	this.frameDelay = options.frameDelay + 1;
 	//this.gameDelay = true;
 	//this.perceivedSimulation.frame -= this.frameDelay; //causes it to start late - doesn't do anything as true world rollback just ignores it
 
 	//todo - consider isTrueSimulation boolean
 
 	//frame rate
-	this.frameRate = frameRate;
+	this.frameRate = options.frameRate;
 
 	//connection
 	this.connection = new rollbackclientengine.Connection();
-	this.connection.connect(url);
+	this.connection.connect(options.url);
 	this.connection.delegate = this;
 	this.connection.onConnect = function() { this.delegate.onConnect.call(this.delegate) };
 	this.connection.onReceivedText = function(t) { this.delegate.onReceivedText.call(this.delegate, t) };
@@ -101,20 +102,20 @@ rollbackclientengine.controllers.PlayController = function(url, Simulation, Comm
 	this.player = null; //will be set by server
 
 	//player count - if use default 2, doesn't store player
-	this.shouldSendPlayer = playerCount > 2;
-	this.playerCount = playerCount;
+	this.shouldSendPlayer = options.playerCount > 2;
+	this.playerCount = options.playerCount;
 	if(this.shouldSendPlayer) {
 		//todo - calculate bit size
 		this.sendPlayerBitSize = null;
 	}
 
 	//minimum update frame - if use default 1, doesn't store frame #
-	if(minimumUpdateFrame === 1) {
+	if(options.minimumUpdateFrame === 1) {
 		this.shouldSendFrame = false;
 	}else {
 		//store values
 		this.shouldSendFrame = true;
-		this.minimumUpdateFrame = minimumUpdateFrame;
+		this.minimumUpdateFrame = options.minimumUpdateFrame;
 	}
 
 	//last received frame
