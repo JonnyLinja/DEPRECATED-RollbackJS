@@ -6,12 +6,12 @@
 rollbackgameengine.datastructures.SinglyLinkedListNode = function(o) {
 	this.obj = o;
 	this.next = null;
-}
+};
 
 rollbackgameengine.datastructures.SinglyLinkedList = function() {
 	this.head = null;
 	this.tail = null;
-}
+};
 
 rollbackgameengine.datastructures.SinglyLinkedListPool = null;
 
@@ -30,7 +30,7 @@ rollbackgameengine.datastructures.SinglyLinkedList.prototype.createNode = functi
 
 	//return
 	return node;
-}
+};
 
 rollbackgameengine.datastructures.SinglyLinkedList.prototype.add = function(o) {
 	//node
@@ -48,7 +48,7 @@ rollbackgameengine.datastructures.SinglyLinkedList.prototype.add = function(o) {
 
 	//set tail
 	this.tail = node;
-}
+};
 
 rollbackgameengine.datastructures.SinglyLinkedList.prototype.push = function(o) {
 	//node
@@ -62,7 +62,7 @@ rollbackgameengine.datastructures.SinglyLinkedList.prototype.push = function(o) 
 	//add to list
 	node.next = this.head;
 	this.head = node;
-}
+};
 
 rollbackgameengine.datastructures.SinglyLinkedList.prototype.pop = function() {
 	//grab head
@@ -97,4 +97,4 @@ rollbackgameengine.datastructures.SinglyLinkedList.prototype.pop = function() {
 		//none
 		return null;
 	}
-}
+};

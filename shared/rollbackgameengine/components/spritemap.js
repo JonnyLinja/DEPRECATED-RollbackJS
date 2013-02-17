@@ -6,9 +6,9 @@
 //==================================================//
 
 rollbackgameengine.components.spritemap = {
-	load : function(entity, imagesrc) {
+	loadEntity : function(entity, options) {
 		//save url
-		entity.imagesrc = imagesrc;
+		entity.imagesrc = options.source;
 
 		//values
 		entity._spritemapAnimationFrame = 0;
@@ -23,9 +23,6 @@ rollbackgameengine.components.spritemap = {
 
 		//animate function
 		entity.animateSpritemap = this._animateSpritemap;
-
-		//return
-		return this;
 	},
 
 	update : function(entity) {

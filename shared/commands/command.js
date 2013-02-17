@@ -7,7 +7,7 @@
 
 shooter.commands.Command = function() {
 	this.reset();
-}
+};
 
 //reset
 
@@ -20,7 +20,7 @@ shooter.commands.Command.prototype.reset = function() {
 	this.mouseDown = false;		//1
 	this.mouseX = 0;			//10
 	this.mouseY = 0;			//10
-}
+};
 
 //loading
 
@@ -33,7 +33,7 @@ shooter.commands.Command.prototype.loadFromMessage = function(incomingmessage) {
 	this.mouseDown = incomingmessage.nextBoolean();
 	this.mouseX = incomingmessage.nextUnsignedInteger(10);
 	this.mouseY = incomingmessage.nextUnsignedInteger(10);
-}
+};
 
 shooter.commands.Command.prototype.loadFromCommand = function(command) {
 	//booleans
@@ -44,7 +44,7 @@ shooter.commands.Command.prototype.loadFromCommand = function(command) {
 	this.mouseDown = command.mouseDown;
 	this.mouseX = command.mouseX;
 	this.mouseY = command.mouseY;
-}
+};
 
 //sending
 
@@ -59,10 +59,10 @@ shooter.commands.Command.prototype.addDataToMessage = function(outgoingmessage) 
 	outgoingmessage.addBoolean(this.mouseDown);
 	outgoingmessage.addUnsignedInteger(this.mouseX, 10);
 	outgoingmessage.addUnsignedInteger(this.mouseY, 10);
-}
+};
 
 //helper
 
 shooter.commands.Command.prototype.toString = function() {
 	return "<" + this.w + ", " + this.a + ", " + this.s + ", " + this.d + ">";
-}
+};

@@ -9,7 +9,7 @@ rollbackgameengine.networking.OutgoingMessage = function(byteSize) {
 	this.bitPosition = rollbackgameengine.networking.messageBitSize;
 	this.arrayBuffer = new ArrayBuffer(byteSize);
 	this.array = new Uint8Array(this.arrayBuffer);
-}
+};
 
 rollbackgameengine.networking.OutgoingMessage.prototype.reset = function() {
 	this.arrayPosition = 0;
@@ -19,7 +19,7 @@ rollbackgameengine.networking.OutgoingMessage.prototype.reset = function() {
 	for(var i=0, j=this.array.length; i<j; i++) {
 		this.array[i] = 0;
 	}
-}
+};
 
 rollbackgameengine.networking.OutgoingMessage.prototype.addBoolean = function(bool) {
 	//update bit position
@@ -35,7 +35,7 @@ rollbackgameengine.networking.OutgoingMessage.prototype.addBoolean = function(bo
 		this.bitPosition = rollbackgameengine.networking.messageBitSize;
 		this.arrayPosition++;
 	}
-}
+};
 
 rollbackgameengine.networking.OutgoingMessage.prototype.addUnsignedInteger = function(int, size) {
 	//integer check
@@ -125,7 +125,7 @@ rollbackgameengine.networking.OutgoingMessage.prototype.addUnsignedInteger = fun
 			this.arrayPosition++;
 		}
 	}
-}
+};
 
 rollbackgameengine.networking.OutgoingMessage.prototype.addSignedInteger = function(int, size) {
 	//add sign
@@ -146,7 +146,7 @@ rollbackgameengine.networking.OutgoingMessage.prototype.addSignedInteger = funct
 		//variable length
 		this.addUnsignedInteger(int);
 	}
-}
+};
 
 //uses strings to move decimal place around
 //creates garbage but is necessary to preserve data accuracy
@@ -206,7 +206,7 @@ rollbackgameengine.networking.OutgoingMessage.prototype.addUnsignedNumber = func
 			}
 		}
 	}
-}
+};
 
 rollbackgameengine.networking.OutgoingMessage.prototype.addSignedNumber = function(number, precision, size) {
 	//add sign
@@ -227,9 +227,9 @@ rollbackgameengine.networking.OutgoingMessage.prototype.addSignedNumber = functi
 		//variable length
 		this.addUnsignedNumber(number, precision);
 	}
-}
+};
 
 rollbackgameengine.networking.OutgoingMessage.prototype.addFinalUnsignedInteger = function(number) {
 	var bitsRemaining = (this.byteSize * rollbackgameengine.networking.messageBitSize) - (this.arrayPosition * rollbackgameengine.networking.messageBitSize) - (rollbackgameengine.networking.messageBitSize - this.bitPosition);
 	this.addUnsignedInteger(number, bitsRemaining);
-}
+};

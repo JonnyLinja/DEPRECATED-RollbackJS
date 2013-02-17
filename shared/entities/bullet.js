@@ -4,16 +4,16 @@
 //==================================================//
 
 shooter.entities.bullet = {
-	//load
-	load : function(entity) {
-		entity.loadComponents(
-			rollbackgameengine.components.frame.load(entity, 0, 0, 14, 12),
-			rollbackgameengine.components.collision.load(entity),
-			shooter.components.velocity.load(entity, 10),
-			shooter.components.removeOffscreen.load(entity),
-			shooter.components.explodesOnCollision.load(entity, shooter.entities.human, shooter.entities.alien),
-			rollbackgameengine.components.spritemap.load(entity, "images/airball.png")
-		);
+	//components
+	components : function() {
+		return [
+			rollbackgameengine.components.frame,			{ x:0, y:0, width:14, height:12 },
+			rollbackgameengine.components.collision,		{ },
+			shooter.components.velocity,					{ speed:10 },
+			shooter.components.removeOffscreen,				{ },
+			shooter.components.explodesOnCollision,			{ types:[shooter.entities.human, shooter.entities.alien] },
+			rollbackgameengine.components.spritemap,		{ source:"images/airball.png"}
+		];
 	},
 
 	//sync

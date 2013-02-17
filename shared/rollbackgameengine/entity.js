@@ -4,100 +4,19 @@
 //==================================================//
 
 //expects components to be passed in
-rollbackgameengine.Entity = function(factory) {
-	//set factory
-	this.factory = factory;
+rollbackgameengine.Entity = function(type) {
+	//set type
+	this.type = type;
 
 	//reference to container world
 	this.world = null;
-}
-
-rollbackgameengine.Entity.prototype.loadComponents = function() {
-	//determine loaded
-	if(this.factory._loaded) {
-		//no loading needed
-		return;
-	}else {
-		//set loaded
-		this.factory._loaded = true;
-	}
-
-	//loop components
-	for(var i=0, j=arguments.length; i<j; i++) {
-		//addedToWorld
-		if(arguments[i].addedToWorld) {
-			//create list
-			if(!this.factory._addedToWorldComponents) {
-				this.factory._addedToWorldComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
-			}
-
-			//add to list
-			this.factory._addedToWorldComponents.add(arguments[i]);
-		}
-
-		//removedFromWorld
-		if(arguments[i].removedFromWorld) {
-			//create list
-			if(!this.factory._removedFromWorldComponents) {
-				this.factory._removedFromWorldComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
-			}
-
-			//add to list
-			this.factory._removedFromWorldComponents.add(arguments[i]);
-		}
-
-		//update
-		if(arguments[i].update) {
-			//create list
-			if(!this.factory._updateComponents) {
-				this.factory._updateComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
-			}
-
-			//add to list
-			this.factory._updateComponents.add(arguments[i]);
-		}
-
-		//render
-		if(arguments[i].render) {
-			//create list
-			if(!this.factory._renderComponents) {
-				this.factory._renderComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
-			}
-
-			//add to list
-			this.factory._renderComponents.add(arguments[i]);
-		}
-
-		//rollback
-		if(arguments[i].rollback) {
-			//create list
-			if(!this.factory._rollbackComponents) {
-				this.factory._rollbackComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
-			}
-
-			//add to list
-			this.factory._rollbackComponents.add(arguments[i]);
-		}
-
-		//sync
-		if(this.factory.sync && (this.factory.sync === rollbackgameengine.sync.singleton || this.factory.sync === rollbackgameengine.sync.sometimes || this.factory.sync === rollbackgameengine.sync.often)
-			&& arguments[i].encode && arguments[i].decode) {
-			//create list
-			if(!this.factory._syncComponents) {
-				this.factory._syncComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
-			}
-
-			//add to list
-			this.factory._syncComponents.add(arguments[i]);
-		}
-	}
-}
+};
 
 rollbackgameengine.Entity.prototype.addedToWorld = function() {
 	//components
-	if(this.factory._addedToWorldComponents) {
+	if(this.type._addedToWorldComponents) {
 		//get top most element
-		var current = this.factory._addedToWorldComponents.head;
+		var current = this.type._addedToWorldComponents.head;
 
 		//loop through list
 		while (current) {
@@ -109,17 +28,17 @@ rollbackgameengine.Entity.prototype.addedToWorld = function() {
 		}
 	}
 
-	//factory
-	if(this.factory.addedToWorld) {
-		this.factory.addedToWorld(this);
+	//type
+	if(this.type.addedToWorld) {
+		this.type.addedToWorld(this);
 	}
-}
+};
 
 rollbackgameengine.Entity.prototype.removedFromWorld = function() {
 	//components
-	if(this.factory._removedFromWorldComponents) {
+	if(this.type._removedFromWorldComponents) {
 		//get top most element
-		var current = this.factory._removedFromWorldComponents.head;
+		var current = this.type._removedFromWorldComponents.head;
 
 		//loop through list
 		while (current) {
@@ -131,17 +50,17 @@ rollbackgameengine.Entity.prototype.removedFromWorld = function() {
 		}
 	}
 
-	//factory
-	if(this.factory.removedFromWorld) {
-		this.factory.removedFromWorld(this);
+	//type
+	if(this.type.removedFromWorld) {
+		this.type.removedFromWorld(this);
 	}
-}
+};
 
 rollbackgameengine.Entity.prototype.update = function() {
 	//components
-	if(this.factory._updateComponents) {
+	if(this.type._updateComponents) {
 		//get top most element
-		var current = this.factory._updateComponents.head;
+		var current = this.type._updateComponents.head;
 
 		//loop through list
 		while (current) {
@@ -153,17 +72,17 @@ rollbackgameengine.Entity.prototype.update = function() {
 		}
 	}
 
-	//factory
-	if(this.factory.update) {
-		this.factory.update(this);
+	//type
+	if(this.type.update) {
+		this.type.update(this);
 	}
-}
+};
 
 rollbackgameengine.Entity.prototype.render = function(ctx) {
 	//components
-	if(this.factory._renderComponents) {
+	if(this.type._renderComponents) {
 		//get top most element
-		var current = this.factory._renderComponents.head;
+		var current = this.type._renderComponents.head;
 
 		//loop through list
 		while (current) {
@@ -175,17 +94,17 @@ rollbackgameengine.Entity.prototype.render = function(ctx) {
 		}
 	}
 
-	//factory
-	if(this.factory.render) {
-		this.factory.render(this, ctx);
+	//type
+	if(this.type.render) {
+		this.type.render(this, ctx);
 	}
-}
+};
 
 rollbackgameengine.Entity.prototype.rollback = function(e) {
 	//components
-	if(this.factory._rollbackComponents) {
+	if(this.type._rollbackComponents) {
 		//declare variables
-		var current = this.factory._rollbackComponents.head;
+		var current = this.type._rollbackComponents.head;
 
 		//loop through list
 		while (current) {
@@ -197,17 +116,17 @@ rollbackgameengine.Entity.prototype.rollback = function(e) {
 		}
 	}
 
-	//factory
-	if(this.factory.rollback) {
-		this.factory.rollback(this, e);
+	//type
+	if(this.type.rollback) {
+		this.type.rollback(this, e);
 	}
-}
+};
 
 rollbackgameengine.Entity.prototype.encode = function(outgoingMessage) {
 	//components
-	if(this.factory._syncComponents) {
+	if(this.type._syncComponents) {
 		//declare variables
-		var current = this.factory._syncComponents.head;
+		var current = this.type._syncComponents.head;
 
 		//loop through list
 		while (current) {
@@ -219,17 +138,17 @@ rollbackgameengine.Entity.prototype.encode = function(outgoingMessage) {
 		}
 	}
 
-	//factory
-	if(this.factory.encode) {
-		this.factory.encode(this, outgoingMessage);
+	//type
+	if(this.type.encode) {
+		this.type.encode(this, outgoingMessage);
 	}
-}
+};
 
 rollbackgameengine.Entity.prototype.decode = function(incomingMessage) {
 	//components
-	if(this.factory._syncComponents) {
+	if(this.type._syncComponents) {
 		//declare variables
-		var current = this.factory._syncComponents.head;
+		var current = this.type._syncComponents.head;
 
 		//loop through list
 		while (current) {
@@ -241,8 +160,8 @@ rollbackgameengine.Entity.prototype.decode = function(incomingMessage) {
 		}
 	}
 
-	//factory
-	if(this.factory.decode) {
-		this.factory.decode(this, incomingMessage);
+	//type
+	if(this.type.decode) {
+		this.type.decode(this, incomingMessage);
 	}
-}
+};

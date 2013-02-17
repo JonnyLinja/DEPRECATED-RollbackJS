@@ -8,7 +8,7 @@
 rollbackgameengine.networking.VariableMessage = function(byteSize) {
 	this.bitSize = 0;
 	this.inputs = new rollbackgameengine.datastructures.SinglyLinkedList();
-}
+};
 
 rollbackgameengine.networking.VariableMessage.prototype.constructMessage = function() {
 	//create message
@@ -47,7 +47,7 @@ rollbackgameengine.networking.VariableMessage.prototype.constructMessage = funct
 
 	//return
 	return message;
-}
+};
 
 rollbackgameengine.networking.VariableMessage.prototype.addBoolean = function(bool) {
 	//increment bit size
@@ -55,7 +55,7 @@ rollbackgameengine.networking.VariableMessage.prototype.addBoolean = function(bo
 
 	//push
 	this.inputs.add(bool);
-}
+};
 
 rollbackgameengine.networking.VariableMessage.prototype.addUnsignedInteger = function(int, size) {
 	//increment bit size
@@ -74,7 +74,7 @@ rollbackgameengine.networking.VariableMessage.prototype.addUnsignedInteger = fun
 		value:int,
 		size:size
 	});
-}
+};
 
 rollbackgameengine.networking.VariableMessage.prototype.addSignedInteger = function(int, size) {
 	//increment bit size
@@ -93,7 +93,7 @@ rollbackgameengine.networking.VariableMessage.prototype.addSignedInteger = funct
 		value:int,
 		size:size
 	});
-}
+};
 
 rollbackgameengine.networking.VariableMessage.prototype.addUnsignedNumber = function(number, precision, size) {
 	//increment bit size
@@ -133,7 +133,7 @@ rollbackgameengine.networking.VariableMessage.prototype.addUnsignedNumber = func
 		precision:precision,
 		size:size
 	});
-}
+};
 
 rollbackgameengine.networking.VariableMessage.prototype.addSignedNumber = function(number, precision, size) {
 	//increment bit size
@@ -178,8 +178,8 @@ rollbackgameengine.networking.VariableMessage.prototype.addSignedNumber = functi
 		precision:precision,
 		size:size
 	});
-}
+};
 
 rollbackgameengine.networking.VariableMessage.prototype.addFinalUnsignedInteger = function(int) {
 	//todo
-}
+};

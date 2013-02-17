@@ -4,21 +4,22 @@
 //==================================================//
 
 rollbackgameengine.components.collision = {
-	load : function(entity) {
+	loadType : function(type) {
+		//collision map
+		if(!type._collisionMap) {
+			type._collisionMap = {};
+		}
+
+		//register
+		type.registerCollision = this._registerCollision;
+	},
+
+	loadEntity : function(entity) {
 		//collidable
 		entity.collidable = true;
 
-		//collision map
-		if(!entity.factory._collisionMap) {
-			entity.factory._collisionMap = {};
-		}
-
-		//functions
-		entity.registerCollision = this._registerCollision;
+		//didcollide
 		entity.didCollide = this._didCollide;
-
-		//return
-		return this;
 	},
 
 	rollback : function(entity1, entity2) {
@@ -26,31 +27,31 @@ rollbackgameengine.components.collision = {
 		entity1.collidable = entity2.collidable;
 	},
 
-	//this refers to entity
-	_registerCollision : function(factory, component) {
+	//this refers to type
+	_registerCollision : function(type, component) {
 		//check loaded
-		if(this.factory._loaded) {
+		if(this._loaded) {
 			return;
 		}
 
 		//create new
-		if(!this.factory._collisionMap[factory]) {
-			this.factory._collisionMap[factory] = new rollbackgameengine.datastructures.SinglyLinkedList();
+		if(!this._collisionMap[type]) {
+			this._collisionMap[type] = new rollbackgameengine.datastructures.SinglyLinkedList();
 		}
 
 		//add
-		this.factory._collisionMap[factory].add(component);
+		this._collisionMap[type].add(component);
 	},
 
 	//this refers to entity
 	_didCollide : function(entity) {
 		//check if a component is registered
-		if(!this.factory._collisionMap[entity.factory]) {
+		if(!this.type._collisionMap[entity.type]) {
 			return;
 		}
 
 		//declare variables
-		var current = this.factory._collisionMap[entity.factory].head;
+		var current = this.type._collisionMap[entity.type].head;
 
 		//loop through components
 		while (current) {
@@ -61,9 +62,9 @@ rollbackgameengine.components.collision = {
 			current = current.next;
 		}
 
-		//check factory
-		if(this.factory.didCollide) {
-			this.factory.didCollide(this, entity);
+		//check type
+		if(this.type.didCollide) {
+			this.type.didCollide(this, entity);
 		}
 	}
 }

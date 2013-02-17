@@ -18,7 +18,7 @@ rollbackgameengine.datastructures.DoublyLinkedList = function(prev, next) {
 
 	//count
 	this.count = 0;
-}
+};
 
 //inserts at the head
 rollbackgameengine.datastructures.DoublyLinkedList.prototype.push = function(o) {
@@ -40,7 +40,7 @@ rollbackgameengine.datastructures.DoublyLinkedList.prototype.push = function(o) 
 
 	//count
 	this.count++;
-}
+};
 
 //removes head
 rollbackgameengine.datastructures.DoublyLinkedList.prototype.pop = function() {
@@ -74,7 +74,7 @@ rollbackgameengine.datastructures.DoublyLinkedList.prototype.pop = function() {
 
 	//empty
 	return null;
-}
+};
 
 //adds to the tail
 rollbackgameengine.datastructures.DoublyLinkedList.prototype.add = function(o) {
@@ -96,7 +96,7 @@ rollbackgameengine.datastructures.DoublyLinkedList.prototype.add = function(o) {
 
 	//count
 	this.count++;
-}
+};
 
 //inserts before
 rollbackgameengine.datastructures.DoublyLinkedList.prototype.insertBefore = function(o, rightNode) {
@@ -118,7 +118,7 @@ rollbackgameengine.datastructures.DoublyLinkedList.prototype.insertBefore = func
 
 	//count
 	this.count++;
-}
+};
 
 //inserts after
 rollbackgameengine.datastructures.DoublyLinkedList.prototype.insertAfter = function(o, leftNode) {
@@ -140,7 +140,7 @@ rollbackgameengine.datastructures.DoublyLinkedList.prototype.insertAfter = funct
 
 	//count
 	this.count++;
-}
+};
 
 //remove from list
 rollbackgameengine.datastructures.DoublyLinkedList.prototype.remove = function(o) {
@@ -170,7 +170,7 @@ rollbackgameengine.datastructures.DoublyLinkedList.prototype.remove = function(o
 		//count
 		this.count--;
 	}
-}
+};
 
 //swaps two nodes
 //assumes o1 and o2 are part of the list
@@ -214,4 +214,4 @@ rollbackgameengine.datastructures.DoublyLinkedList.prototype.swap = function(o1,
 	}else {
 		this.tail = o2;
 	}
-}
+};

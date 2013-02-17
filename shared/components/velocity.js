@@ -4,14 +4,11 @@
 //==================================================//
 
 shooter.components.velocity = {
-	load : function(entity, speed) {
+	loadEntity : function(entity, options) {
 		//set velocity values
-		entity.speed = speed;
+		entity.speed = options.speed;
 		entity.vx = 0;
 		entity.vy = 0;
-
-		//return
-		return this;
 	},
 
 	update : function(entity) {

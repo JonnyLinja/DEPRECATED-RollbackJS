@@ -4,18 +4,19 @@
 //==================================================//
 
 rollbackgameengine.components.removedAfter = {
-	load : function(entity, frames) {
-		//add default properties to parent
-		entity.factory._maxttl = frames;
-		entity._ttl = frames;
+	loadType : function(type, options) {
+		//add default properties
+		type._maxttl = options.frames;
+	},
 
-		//return
-		return this;
+	loadEntity : function(entity, options) {
+		//add default properties
+		entity._ttl = options.frame;
 	},
 
 	addedToWorld : function(entity) {
 		//reset ttl
-		entity._ttl = entity.factory._maxttl;
+		entity._ttl = entity.type._maxttl;
 	},
 
 	update : function(entity) {
@@ -34,10 +35,10 @@ rollbackgameengine.components.removedAfter = {
 	},
 
 	encode : function(entity, outgoingMessage) {
-		outgoingMessage.addUnsignedInteger(entity._ttl, rollbackgameengine.networking.calculateUnsignedIntegerBitSize(entity.factory._maxttl));
+		outgoingMessage.addUnsignedInteger(entity._ttl, rollbackgameengine.networking.calculateUnsignedIntegerBitSize(entity.type._maxttl));
 	},
 
 	decode : function(entity, incomingMessage) {
-		entity._ttl = incomingMessage.nextUnsignedInteger(rollbackgameengine.networking.calculateUnsignedIntegerBitSize(entity.factory._maxttl));
+		entity._ttl = incomingMessage.nextUnsignedInteger(rollbackgameengine.networking.calculateUnsignedIntegerBitSize(entity.type._maxttl));
 	}
 }

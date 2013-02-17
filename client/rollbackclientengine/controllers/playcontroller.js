@@ -147,7 +147,7 @@ rollbackclientengine.controllers.PlayController = function(url, Simulation, Comm
 
 	//frame difference - how many frames since last perceived update
 	this.frameDifference = 0;
-}
+};
 
 //updates
 
@@ -311,7 +311,7 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
 		//update perceived simulation
 		this.perceivedSimulation.update();
 	}
-}
+};
 
 rollbackclientengine.controllers.PlayController.prototype.updatePerceivedSimulation = function() {
 	//todo - command look ahead check
@@ -386,7 +386,7 @@ rollbackclientengine.controllers.PlayController.prototype.updatePerceivedSimulat
 		//increment frame difference
 		this.frameDifference++;
 	}while(this.currentTime >= this.nextFrameTime);
-}
+};
 
 rollbackclientengine.controllers.PlayController.prototype.sendInputs = function() {
 	//valid check
@@ -503,7 +503,7 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
 
 	//pool message
 	rollbackgameengine.pool.add("msg"+message.byteSize, message);
-}
+};
 
 rollbackclientengine.controllers.PlayController.prototype.update = function() {
 	//valid check
@@ -535,7 +535,7 @@ rollbackclientengine.controllers.PlayController.prototype.update = function() {
 	this.updateTrueSimulation();
 	this.updatePerceivedSimulation();
 	this.sendInputs();
-}
+};
 
 //render
 
@@ -588,7 +588,7 @@ rollbackclientengine.controllers.PlayController.prototype.render = function(canv
 		ctx.fillText(this.framesSkipped + " frames skipped!!", 50, 50);
 	}
 	this.shouldRender = false;
-}
+};
 
 //connection
 
@@ -600,11 +600,11 @@ rollbackclientengine.controllers.PlayController.prototype.onConnect = function()
 
 	//add to pool
 	rollbackgameengine.pool.add("msg1", readyMessage);
-}
+};
 
 rollbackclientengine.controllers.PlayController.prototype.onReceivedText = function(text) {
 	//todo - chat
-}
+};
 
 rollbackclientengine.controllers.PlayController.prototype.onReceivedData = function(incomingMessage) {
 	//todo sync start time
@@ -780,7 +780,7 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
 		//temp just update true
 		this.trueSimulation.decode(incomingMessage);
 	}
-}
+};
 
 rollbackclientengine.controllers.PlayController.prototype.onDisconnect = function() {
 	//debug
@@ -793,7 +793,7 @@ rollbackclientengine.controllers.PlayController.prototype.onDisconnect = functio
 
 	//toggle boolean
 	this.started = false;
-}
+};
 
 //command helper - private
 
@@ -818,7 +818,7 @@ rollbackclientengine.controllers.PlayController.prototype._getNewCommand = funct
 
 	//return
 	return c;
-}
+};
 
 //debug logging
 
@@ -846,4 +846,4 @@ rollbackclientengine.controllers.PlayController.prototype.displayCommands = func
 			c = c.next;
 		}
 	}
-}
+};

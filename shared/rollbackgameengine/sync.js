@@ -11,7 +11,7 @@ rollbackgameengine.sync.often = 3; //count followed by data
 
 rollbackgameengine.sync.SyncCalculator = function() {
 	this.list = new rollbackgameengine.datastructures.SinglyLinkedList();
-}
+};
 
 rollbackgameengine.sync.SyncCalculator.prototype.calculateSyncValue = function() {
 	//declare variables
@@ -32,7 +32,7 @@ rollbackgameengine.sync.SyncCalculator.prototype.calculateSyncValue = function()
 
 	//return
 	return value;
-}
+};
 
 rollbackgameengine.sync.SyncCalculator.prototype.addValue = function(num) {
 	//make positive
@@ -82,30 +82,30 @@ rollbackgameengine.sync.SyncCalculator.prototype.addValue = function(num) {
 
 	//not found, insert at end
 	this.list.add(num);
-}
+};
 
 rollbackgameengine.sync.SyncCalculator.prototype.addBoolean = function(bool) {
 	if(bool) {
 		this.addValue(1);
 	}
-}
+};
 
 rollbackgameengine.sync.SyncCalculator.prototype.addUnsignedInteger = function(int) {
 	this.addValue(int);
-}
+};
 
 rollbackgameengine.sync.SyncCalculator.prototype.addSignedInteger = function(int) {
 	this.addValue(int);
-}
+};
 
 rollbackgameengine.sync.SyncCalculator.prototype.addUnsignedNumber = function(number) {
 	this.addValue(number);
-}
+};
 
 rollbackgameengine.sync.SyncCalculator.prototype.addSignedNumber = function(number) {
 	this.addValue(number);
-}
+};
 
 rollbackgameengine.sync.SyncCalculator.prototype.addFinalUnsignedInteger = function(int) {
 	this.addValue(int);
-}
+};

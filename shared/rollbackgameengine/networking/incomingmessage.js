@@ -9,7 +9,7 @@ rollbackgameengine.networking.IncomingMessage = function(arrayBuffer) {
 	if(arrayBuffer) {
 		this.setArrayBuffer(arrayBuffer);
 	}
-}
+};
 
 //for client use
 rollbackgameengine.networking.IncomingMessage.prototype.setArrayBuffer = function(arrayBuffer) {
@@ -17,19 +17,19 @@ rollbackgameengine.networking.IncomingMessage.prototype.setArrayBuffer = functio
 	this.bitPosition = rollbackgameengine.networking.messageBitSize;
 	this.arrayBuffer = arrayBuffer;
 	this.array = new Uint8Array(this.arrayBuffer);
-}
+};
 
 //for server use
 rollbackgameengine.networking.IncomingMessage.prototype.setArray = function(array) {
 	this.arrayPosition = 0;
 	this.bitPosition = rollbackgameengine.networking.messageBitSize;
 	this.array = array;
-}
+};
 
 //to be implemented later for data dump purposes
 rollbackgameengine.networking.IncomingMessage.prototype.hasNext = function() {
 	return true;
-}
+};
 
 rollbackgameengine.networking.IncomingMessage.prototype.nextBoolean = function() {
 	//update bit position
@@ -49,7 +49,7 @@ rollbackgameengine.networking.IncomingMessage.prototype.nextBoolean = function()
 
 	//return
 	return (bool == 1);
-}
+};
 
 rollbackgameengine.networking.IncomingMessage.prototype.nextUnsignedInteger = function(size) {
 	if(typeof size === 'undefined') {
@@ -127,7 +127,7 @@ rollbackgameengine.networking.IncomingMessage.prototype.nextUnsignedInteger = fu
 		//return
 		return returnValue;
 	}
-}
+};
 
 rollbackgameengine.networking.IncomingMessage.prototype.nextSignedInteger = function(size) {
 	if(this.nextBoolean()) {
@@ -149,7 +149,7 @@ rollbackgameengine.networking.IncomingMessage.prototype.nextSignedInteger = func
 			return this.nextUnsignedInteger();
 		}
 	}
-}
+};
 
 //uses strings to move decimal place around
 //creates garbage but is necessary to preserve data accuracy
@@ -165,7 +165,7 @@ rollbackgameengine.networking.IncomingMessage.prototype.nextUnsignedNumber = fun
 		//variable length
 		return parseFloat(this.nextUnsignedInteger() + "." + this.nextUnsignedInteger());
 	}
-}
+};
 
 rollbackgameengine.networking.IncomingMessage.prototype.nextSignedNumber = function(precision, size) {
 	if(this.nextBoolean()) {
@@ -187,9 +187,9 @@ rollbackgameengine.networking.IncomingMessage.prototype.nextSignedNumber = funct
 			return this.nextUnsignedNumber(precision);
 		}
 	}
-}
+};
 
 rollbackgameengine.networking.IncomingMessage.prototype.finalUnsignedInteger = function() {
 	var bitsRemaining = (this.array.length * rollbackgameengine.networking.messageBitSize) - (this.arrayPosition * rollbackgameengine.networking.messageBitSize) - (rollbackgameengine.networking.messageBitSize - this.bitPosition);
 	return this.nextUnsignedInteger(bitsRemaining);
-}
+};

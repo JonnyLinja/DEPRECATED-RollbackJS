@@ -4,37 +4,34 @@
 //==================================================//
 
 rollbackgameengine.components.preventOverlap = {
-	load : function(entity) {
+	loadType : function(type, options) {
 		//declare variables
-		var shouldAddToFactory = false;
+		var shouldAddToType = false;
 
-		//check add to factory
-		if(!entity.factory._preventOverlapMap) {
+		//check add to type
+		if(!type._preventOverlapMap) {
 			//set boolean
-			shouldAddToFactory = true;
+			shouldAddToType = true;
 
 			//create hash
-			entity.factory._preventOverlapMap = {};
+			type._preventOverlapMap = {};
 		}
 
-		//loop through factories
-		for(var i=1, j=arguments.length; i<j; i++) {
+		//loop through types
+		for(var i=0, j=options.types.length; i<j; i++) {
 			//register collision
-			entity.registerCollision(arguments[i], this);
+			type.registerCollision(options.types[i], this);
 
-			//add to factory
-			if(shouldAddToFactory) {
-				entity.factory._preventOverlapMap[arguments[i]] = null; //doing it this way for lookup speed
+			//add to type
+			if(shouldAddToType) {
+				type._preventOverlapMap[options.types[i]] = null; //doing it this way for lookup speed
 			}
 		}
-
-		//return
-		return this;
 	},
 
 	didCollide : function(entity1, entity2) {
 		//declare variables
-		var halfPreventOverlap = (entity2.factory._preventOverlapMap && typeof entity2.factory._preventOverlapMap[entity1.factory] !== 'undefined');
+		var halfPreventOverlap = (entity2.type._preventOverlapMap && typeof entity2.type._preventOverlapMap[entity1.type] !== 'undefined');
 		var right1 = entity1.right;
 		var right2 = entity2.right;
 		var bottom1 = entity1.bottom;

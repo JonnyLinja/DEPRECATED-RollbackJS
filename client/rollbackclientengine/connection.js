@@ -15,7 +15,7 @@ rollbackclientengine.Connection = function() {
 	this.onReceivedText = null;
 	this.onReceivedData = null;
 	this.onDisconnect = null;
-}
+};
 
 rollbackclientengine.Connection.prototype.connect = function(url) {
 	//validity check - only one open
@@ -32,7 +32,7 @@ rollbackclientengine.Connection.prototype.connect = function(url) {
 	this.socket.onopen = this._onOpen;
 	this.socket.onmessage = this._onMessage;
 	this.socket.onclose = this._onClose;
-}
+};
 
 //expects string or outgoingmessage
 rollbackclientengine.Connection.prototype.send = function(outgoing) {
@@ -43,7 +43,7 @@ rollbackclientengine.Connection.prototype.send = function(outgoing) {
 		//outgoingmessage
 		this.socket.send(outgoing.arrayBuffer);
 	}
-}
+};
 
 //private - don't touch
 //this refers to the socket, not to connection
@@ -53,7 +53,7 @@ rollbackclientengine.Connection.prototype._onOpen = function() {
 	if(this.connection.onConnect) {
 		this.connection.onConnect();
 	}
-}
+};
 
 rollbackclientengine.Connection.prototype._onMessage = function(e) {
 	if(e.data instanceof ArrayBuffer) {
@@ -66,10 +66,10 @@ rollbackclientengine.Connection.prototype._onMessage = function(e) {
 		//received string
 		this.connection.onReceivedText(e.data);
 	}
-}
+};
 
 rollbackclientengine.Connection.prototype._onClose = function() {
 	if(this.connection.onDisconnect) {
 		this.connection.onDisconnect();
 	}
-}
+};

@@ -4,15 +4,15 @@
 //==================================================//
 
 shooter.entities.human = {
-	//load
-	load : function(entity) {
-		entity.loadComponents(
-			rollbackgameengine.components.frame.load(entity, 0, 0, 34, 33),
-			rollbackgameengine.components.collision.load(entity),
-			shooter.components.damagedOnCollision.load(entity, shooter.entities.bullet),
-			rollbackgameengine.components.preventOverlap.load(entity, shooter.entities.alien, shooter.entities.wall),
-			rollbackgameengine.components.spritemap.load(entity, "images/humangun.png")
-		);
+	//components
+	components : function() {
+		return [
+			rollbackgameengine.components.frame,			{ x:0, y:0, width:34, height:33 },
+			rollbackgameengine.components.collision,		{ },
+			shooter.components.damagedOnCollision,			{ types:[shooter.entities.bullet] },
+			rollbackgameengine.components.preventOverlap,	{ types:[shooter.entities.alien, shooter.entities.wall] },
+			rollbackgameengine.components.spritemap,		{ source:"images/humangun.png" }
+		];
 	},
 
 	//sync

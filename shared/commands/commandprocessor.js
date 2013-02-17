@@ -20,7 +20,7 @@ shooter.commands.CommandProcessor = function(simulation, player) {
 	this.mouseX = 0;
 	this.mouseY = 0;
 	this.mouseDown = false;
-}
+};
 
 shooter.commands.CommandProcessor.prototype.update = function(command) {
 	//math
@@ -175,9 +175,9 @@ shooter.commands.CommandProcessor.prototype.update = function(command) {
 		//this.player.spritemapAnimationFrame = shooter.entities.human.animations.facedown;
 	}
 	*/
-}
+};
 
 shooter.commands.CommandProcessor.prototype.rollback = function(p) {
 	//rollback values
 	this.mouseDown = p.mouseDown;
-}
+};

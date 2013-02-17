@@ -53,6 +53,107 @@ rollbackgameengine.sync.singleton = 1; //same number always exists
 rollbackgameengine.sync.sometimes = 2; //bool for use, if true then followed by count and data
 rollbackgameengine.sync.often = 3; //count followed by data
 
+rollbackgameengine.sync.SyncCalculator = function() {
+	this.list = new rollbackgameengine.datastructures.SinglyLinkedList();
+};
+
+rollbackgameengine.sync.SyncCalculator.prototype.calculateSyncValue = function() {
+	//declare variables
+	var value = 0;
+	var current = null;
+
+	//loop
+	while(this.list.head) {
+		//subtract
+		current = this.list.pop();
+		value -= current;
+
+		//make positive
+		if(value < 0) {
+			value *= -1;
+		}
+	}
+
+	//return
+	return value;
+};
+
+rollbackgameengine.sync.SyncCalculator.prototype.addValue = function(num) {
+	//make positive
+	if(num < 0) {
+		num *= -1;
+	}
+
+	//make integer
+	num = ~~(num);
+
+	//declare variables
+	var current = this.list.head;
+	var previous = null;
+
+	//add head
+	if(!current) {
+		this.list.push(num);
+		return;
+	}
+
+	//loop search
+	while(current) {
+		if(current.obj <= num) {
+			//found
+			if(!previous) {
+				//is head
+				this.list.push(num);
+			}else {
+				//not head
+
+				//create node
+				var node = this.list.createNode(num);
+
+				//connect
+				previous.next = node;
+				node.next = current;
+			}
+
+			//exit
+			return;
+		}
+
+		//increment
+		previous = current;
+		current = current.next;
+	}
+
+	//not found, insert at end
+	this.list.add(num);
+};
+
+rollbackgameengine.sync.SyncCalculator.prototype.addBoolean = function(bool) {
+	if(bool) {
+		this.addValue(1);
+	}
+};
+
+rollbackgameengine.sync.SyncCalculator.prototype.addUnsignedInteger = function(int) {
+	this.addValue(int);
+};
+
+rollbackgameengine.sync.SyncCalculator.prototype.addSignedInteger = function(int) {
+	this.addValue(int);
+};
+
+rollbackgameengine.sync.SyncCalculator.prototype.addUnsignedNumber = function(number) {
+	this.addValue(number);
+};
+
+rollbackgameengine.sync.SyncCalculator.prototype.addSignedNumber = function(number) {
+	this.addValue(number);
+};
+
+rollbackgameengine.sync.SyncCalculator.prototype.addFinalUnsignedInteger = function(int) {
+	this.addValue(int);
+};
+
 //==================================================//
 // rollbackgameengine/networking/message.js
 //==================================================//
@@ -107,7 +208,7 @@ rollbackgameengine.networking.IncomingMessage = function(arrayBuffer) {
 	if(arrayBuffer) {
 		this.setArrayBuffer(arrayBuffer);
 	}
-}
+};
 
 //for client use
 rollbackgameengine.networking.IncomingMessage.prototype.setArrayBuffer = function(arrayBuffer) {
@@ -115,19 +216,19 @@ rollbackgameengine.networking.IncomingMessage.prototype.setArrayBuffer = functio
 	this.bitPosition = rollbackgameengine.networking.messageBitSize;
 	this.arrayBuffer = arrayBuffer;
 	this.array = new Uint8Array(this.arrayBuffer);
-}
+};
 
 //for server use
 rollbackgameengine.networking.IncomingMessage.prototype.setArray = function(array) {
 	this.arrayPosition = 0;
 	this.bitPosition = rollbackgameengine.networking.messageBitSize;
 	this.array = array;
-}
+};
 
 //to be implemented later for data dump purposes
 rollbackgameengine.networking.IncomingMessage.prototype.hasNext = function() {
 	return true;
-}
+};
 
 rollbackgameengine.networking.IncomingMessage.prototype.nextBoolean = function() {
 	//update bit position
@@ -147,7 +248,7 @@ rollbackgameengine.networking.IncomingMessage.prototype.nextBoolean = function()
 
 	//return
 	return (bool == 1);
-}
+};
 
 rollbackgameengine.networking.IncomingMessage.prototype.nextUnsignedInteger = function(size) {
 	if(typeof size === 'undefined') {
@@ -225,7 +326,7 @@ rollbackgameengine.networking.IncomingMessage.prototype.nextUnsignedInteger = fu
 		//return
 		return returnValue;
 	}
-}
+};
 
 rollbackgameengine.networking.IncomingMessage.prototype.nextSignedInteger = function(size) {
 	if(this.nextBoolean()) {
@@ -247,7 +348,7 @@ rollbackgameengine.networking.IncomingMessage.prototype.nextSignedInteger = func
 			return this.nextUnsignedInteger();
 		}
 	}
-}
+};
 
 //uses strings to move decimal place around
 //creates garbage but is necessary to preserve data accuracy
@@ -263,7 +364,7 @@ rollbackgameengine.networking.IncomingMessage.prototype.nextUnsignedNumber = fun
 		//variable length
 		return parseFloat(this.nextUnsignedInteger() + "." + this.nextUnsignedInteger());
 	}
-}
+};
 
 rollbackgameengine.networking.IncomingMessage.prototype.nextSignedNumber = function(precision, size) {
 	if(this.nextBoolean()) {
@@ -285,12 +386,12 @@ rollbackgameengine.networking.IncomingMessage.prototype.nextSignedNumber = funct
 			return this.nextUnsignedNumber(precision);
 		}
 	}
-}
+};
 
 rollbackgameengine.networking.IncomingMessage.prototype.finalUnsignedInteger = function() {
 	var bitsRemaining = (this.array.length * rollbackgameengine.networking.messageBitSize) - (this.arrayPosition * rollbackgameengine.networking.messageBitSize) - (rollbackgameengine.networking.messageBitSize - this.bitPosition);
 	return this.nextUnsignedInteger(bitsRemaining);
-}
+};
 
 //==================================================//
 // rollbackgameengine/networking/outgoingmessage.js
@@ -302,7 +403,7 @@ rollbackgameengine.networking.OutgoingMessage = function(byteSize) {
 	this.bitPosition = rollbackgameengine.networking.messageBitSize;
 	this.arrayBuffer = new ArrayBuffer(byteSize);
 	this.array = new Uint8Array(this.arrayBuffer);
-}
+};
 
 rollbackgameengine.networking.OutgoingMessage.prototype.reset = function() {
 	this.arrayPosition = 0;
@@ -312,7 +413,7 @@ rollbackgameengine.networking.OutgoingMessage.prototype.reset = function() {
 	for(var i=0, j=this.array.length; i<j; i++) {
 		this.array[i] = 0;
 	}
-}
+};
 
 rollbackgameengine.networking.OutgoingMessage.prototype.addBoolean = function(bool) {
 	//update bit position
@@ -328,7 +429,7 @@ rollbackgameengine.networking.OutgoingMessage.prototype.addBoolean = function(bo
 		this.bitPosition = rollbackgameengine.networking.messageBitSize;
 		this.arrayPosition++;
 	}
-}
+};
 
 rollbackgameengine.networking.OutgoingMessage.prototype.addUnsignedInteger = function(int, size) {
 	//integer check
@@ -418,7 +519,7 @@ rollbackgameengine.networking.OutgoingMessage.prototype.addUnsignedInteger = fun
 			this.arrayPosition++;
 		}
 	}
-}
+};
 
 rollbackgameengine.networking.OutgoingMessage.prototype.addSignedInteger = function(int, size) {
 	//add sign
@@ -439,7 +540,7 @@ rollbackgameengine.networking.OutgoingMessage.prototype.addSignedInteger = funct
 		//variable length
 		this.addUnsignedInteger(int);
 	}
-}
+};
 
 //uses strings to move decimal place around
 //creates garbage but is necessary to preserve data accuracy
@@ -499,7 +600,7 @@ rollbackgameengine.networking.OutgoingMessage.prototype.addUnsignedNumber = func
 			}
 		}
 	}
-}
+};
 
 rollbackgameengine.networking.OutgoingMessage.prototype.addSignedNumber = function(number, precision, size) {
 	//add sign
@@ -520,12 +621,12 @@ rollbackgameengine.networking.OutgoingMessage.prototype.addSignedNumber = functi
 		//variable length
 		this.addUnsignedNumber(number, precision);
 	}
-}
+};
 
 rollbackgameengine.networking.OutgoingMessage.prototype.addFinalUnsignedInteger = function(number) {
 	var bitsRemaining = (this.byteSize * rollbackgameengine.networking.messageBitSize) - (this.arrayPosition * rollbackgameengine.networking.messageBitSize) - (rollbackgameengine.networking.messageBitSize - this.bitPosition);
 	this.addUnsignedInteger(number, bitsRemaining);
-}
+};
 
 //==================================================//
 // rollbackgameengine/networking/variablemessage.js
@@ -536,7 +637,7 @@ rollbackgameengine.networking.OutgoingMessage.prototype.addFinalUnsignedInteger 
 rollbackgameengine.networking.VariableMessage = function(byteSize) {
 	this.bitSize = 0;
 	this.inputs = new rollbackgameengine.datastructures.SinglyLinkedList();
-}
+};
 
 rollbackgameengine.networking.VariableMessage.prototype.constructMessage = function() {
 	//create message
@@ -575,7 +676,7 @@ rollbackgameengine.networking.VariableMessage.prototype.constructMessage = funct
 
 	//return
 	return message;
-}
+};
 
 rollbackgameengine.networking.VariableMessage.prototype.addBoolean = function(bool) {
 	//increment bit size
@@ -583,7 +684,7 @@ rollbackgameengine.networking.VariableMessage.prototype.addBoolean = function(bo
 
 	//push
 	this.inputs.add(bool);
-}
+};
 
 rollbackgameengine.networking.VariableMessage.prototype.addUnsignedInteger = function(int, size) {
 	//increment bit size
@@ -602,7 +703,7 @@ rollbackgameengine.networking.VariableMessage.prototype.addUnsignedInteger = fun
 		value:int,
 		size:size
 	});
-}
+};
 
 rollbackgameengine.networking.VariableMessage.prototype.addSignedInteger = function(int, size) {
 	//increment bit size
@@ -621,7 +722,7 @@ rollbackgameengine.networking.VariableMessage.prototype.addSignedInteger = funct
 		value:int,
 		size:size
 	});
-}
+};
 
 rollbackgameengine.networking.VariableMessage.prototype.addUnsignedNumber = function(number, precision, size) {
 	//increment bit size
@@ -661,7 +762,7 @@ rollbackgameengine.networking.VariableMessage.prototype.addUnsignedNumber = func
 		precision:precision,
 		size:size
 	});
-}
+};
 
 rollbackgameengine.networking.VariableMessage.prototype.addSignedNumber = function(number, precision, size) {
 	//increment bit size
@@ -706,11 +807,11 @@ rollbackgameengine.networking.VariableMessage.prototype.addSignedNumber = functi
 		precision:precision,
 		size:size
 	});
-}
+};
 
 rollbackgameengine.networking.VariableMessage.prototype.addFinalUnsignedInteger = function(int) {
 	//todo
-}
+};
 
 //==================================================//
 // rollbackgameengine/datastructures/singlylinkedlist.js
@@ -719,12 +820,12 @@ rollbackgameengine.networking.VariableMessage.prototype.addFinalUnsignedInteger 
 rollbackgameengine.datastructures.SinglyLinkedListNode = function(o) {
 	this.obj = o;
 	this.next = null;
-}
+};
 
 rollbackgameengine.datastructures.SinglyLinkedList = function() {
 	this.head = null;
 	this.tail = null;
-}
+};
 
 rollbackgameengine.datastructures.SinglyLinkedListPool = null;
 
@@ -743,7 +844,7 @@ rollbackgameengine.datastructures.SinglyLinkedList.prototype.createNode = functi
 
 	//return
 	return node;
-}
+};
 
 rollbackgameengine.datastructures.SinglyLinkedList.prototype.add = function(o) {
 	//node
@@ -761,7 +862,7 @@ rollbackgameengine.datastructures.SinglyLinkedList.prototype.add = function(o) {
 
 	//set tail
 	this.tail = node;
-}
+};
 
 rollbackgameengine.datastructures.SinglyLinkedList.prototype.push = function(o) {
 	//node
@@ -775,7 +876,7 @@ rollbackgameengine.datastructures.SinglyLinkedList.prototype.push = function(o) 
 	//add to list
 	node.next = this.head;
 	this.head = node;
-}
+};
 
 rollbackgameengine.datastructures.SinglyLinkedList.prototype.pop = function() {
 	//grab head
@@ -810,7 +911,7 @@ rollbackgameengine.datastructures.SinglyLinkedList.prototype.pop = function() {
 		//none
 		return null;
 	}
-}
+};
 
 //==================================================//
 // rollbackgameengine/datastructures/doublylinkedlist.js
@@ -831,7 +932,7 @@ rollbackgameengine.datastructures.DoublyLinkedList = function(prev, next) {
 
 	//count
 	this.count = 0;
-}
+};
 
 //inserts at the head
 rollbackgameengine.datastructures.DoublyLinkedList.prototype.push = function(o) {
@@ -853,7 +954,7 @@ rollbackgameengine.datastructures.DoublyLinkedList.prototype.push = function(o) 
 
 	//count
 	this.count++;
-}
+};
 
 //removes head
 rollbackgameengine.datastructures.DoublyLinkedList.prototype.pop = function() {
@@ -887,7 +988,7 @@ rollbackgameengine.datastructures.DoublyLinkedList.prototype.pop = function() {
 
 	//empty
 	return null;
-}
+};
 
 //adds to the tail
 rollbackgameengine.datastructures.DoublyLinkedList.prototype.add = function(o) {
@@ -909,7 +1010,7 @@ rollbackgameengine.datastructures.DoublyLinkedList.prototype.add = function(o) {
 
 	//count
 	this.count++;
-}
+};
 
 //inserts before
 rollbackgameengine.datastructures.DoublyLinkedList.prototype.insertBefore = function(o, rightNode) {
@@ -931,7 +1032,7 @@ rollbackgameengine.datastructures.DoublyLinkedList.prototype.insertBefore = func
 
 	//count
 	this.count++;
-}
+};
 
 //inserts after
 rollbackgameengine.datastructures.DoublyLinkedList.prototype.insertAfter = function(o, leftNode) {
@@ -953,7 +1054,7 @@ rollbackgameengine.datastructures.DoublyLinkedList.prototype.insertAfter = funct
 
 	//count
 	this.count++;
-}
+};
 
 //remove from list
 rollbackgameengine.datastructures.DoublyLinkedList.prototype.remove = function(o) {
@@ -983,7 +1084,7 @@ rollbackgameengine.datastructures.DoublyLinkedList.prototype.remove = function(o
 		//count
 		this.count--;
 	}
-}
+};
 
 //swaps two nodes
 //assumes o1 and o2 are part of the list
@@ -1027,19 +1128,19 @@ rollbackgameengine.datastructures.DoublyLinkedList.prototype.swap = function(o1,
 	}else {
 		this.tail = o2;
 	}
-}
+};
 
 //==================================================//
 // rollbackgameengine/components/frame.js
 //==================================================//
 
 rollbackgameengine.components.frame = {
-	load : function(entity, x, y, width, height) {
-		//add default properties to parent
-		entity.x = x;
-		entity.y = y;
-		entity.width = width;
-		entity.height = height;
+	loadEntity : function(entity, options) {
+		//add default properties
+		entity.x = options.x;
+		entity.y = options.y;
+		entity.width = options.width;
+		entity.height = options.height;
 		entity.moveX = 0;
 		entity.moveY = 0;
 
@@ -1051,9 +1152,6 @@ rollbackgameengine.components.frame = {
 
 		//add center function
 		entity.center = this._center;
-
-		//return
-		return this;
 	},
 
 	update : function(entity) {
@@ -1116,21 +1214,22 @@ rollbackgameengine.components.frame = {
 //==================================================//
 
 rollbackgameengine.components.collision = {
-	load : function(entity) {
+	loadType : function(type) {
+		//collision map
+		if(!type._collisionMap) {
+			type._collisionMap = {};
+		}
+
+		//register
+		type.registerCollision = this._registerCollision;
+	},
+
+	loadEntity : function(entity) {
 		//collidable
 		entity.collidable = true;
 
-		//collision map
-		if(!entity.factory._collisionMap) {
-			entity.factory._collisionMap = {};
-		}
-
-		//functions
-		entity.registerCollision = this._registerCollision;
+		//didcollide
 		entity.didCollide = this._didCollide;
-
-		//return
-		return this;
 	},
 
 	rollback : function(entity1, entity2) {
@@ -1138,31 +1237,31 @@ rollbackgameengine.components.collision = {
 		entity1.collidable = entity2.collidable;
 	},
 
-	//this refers to entity
-	_registerCollision : function(factory, component) {
+	//this refers to type
+	_registerCollision : function(type, component) {
 		//check loaded
-		if(this.factory._loaded) {
+		if(this._loaded) {
 			return;
 		}
 
 		//create new
-		if(!this.factory._collisionMap[factory]) {
-			this.factory._collisionMap[factory] = new rollbackgameengine.datastructures.SinglyLinkedList();
+		if(!this._collisionMap[type]) {
+			this._collisionMap[type] = new rollbackgameengine.datastructures.SinglyLinkedList();
 		}
 
 		//add
-		this.factory._collisionMap[factory].add(component);
+		this._collisionMap[type].add(component);
 	},
 
 	//this refers to entity
 	_didCollide : function(entity) {
 		//check if a component is registered
-		if(!this.factory._collisionMap[entity.factory]) {
+		if(!this.type._collisionMap[entity.type]) {
 			return;
 		}
 
 		//declare variables
-		var current = this.factory._collisionMap[entity.factory].head;
+		var current = this.type._collisionMap[entity.type].head;
 
 		//loop through components
 		while (current) {
@@ -1173,9 +1272,9 @@ rollbackgameengine.components.collision = {
 			current = current.next;
 		}
 
-		//check factory
-		if(this.factory.didCollide) {
-			this.factory.didCollide(this, entity);
+		//check type
+		if(this.type.didCollide) {
+			this.type.didCollide(this, entity);
 		}
 	}
 }
@@ -1187,9 +1286,9 @@ rollbackgameengine.components.collision = {
 //==================================================//
 
 rollbackgameengine.components.spritemap = {
-	load : function(entity, imagesrc) {
+	loadEntity : function(entity, options) {
 		//save url
-		entity.imagesrc = imagesrc;
+		entity.imagesrc = options.source;
 
 		//values
 		entity._spritemapAnimationFrame = 0;
@@ -1204,9 +1303,6 @@ rollbackgameengine.components.spritemap = {
 
 		//animate function
 		entity.animateSpritemap = this._animateSpritemap;
-
-		//return
-		return this;
 	},
 
 	update : function(entity) {
@@ -1342,37 +1438,34 @@ rollbackgameengine.components.spritemap = {
 //==================================================//
 
 rollbackgameengine.components.preventOverlap = {
-	load : function(entity) {
+	loadType : function(type, options) {
 		//declare variables
-		var shouldAddToFactory = false;
+		var shouldAddToType = false;
 
-		//check add to factory
-		if(!entity.factory._preventOverlapMap) {
+		//check add to type
+		if(!type._preventOverlapMap) {
 			//set boolean
-			shouldAddToFactory = true;
+			shouldAddToType = true;
 
 			//create hash
-			entity.factory._preventOverlapMap = {};
+			type._preventOverlapMap = {};
 		}
 
-		//loop through factories
-		for(var i=1, j=arguments.length; i<j; i++) {
+		//loop through types
+		for(var i=0, j=options.types.length; i<j; i++) {
 			//register collision
-			entity.registerCollision(arguments[i], this);
+			type.registerCollision(options.types[i], this);
 
-			//add to factory
-			if(shouldAddToFactory) {
-				entity.factory._preventOverlapMap[arguments[i]] = null; //doing it this way for lookup speed
+			//add to type
+			if(shouldAddToType) {
+				type._preventOverlapMap[options.types[i]] = null; //doing it this way for lookup speed
 			}
 		}
-
-		//return
-		return this;
 	},
 
 	didCollide : function(entity1, entity2) {
 		//declare variables
-		var halfPreventOverlap = (entity2.factory._preventOverlapMap && typeof entity2.factory._preventOverlapMap[entity1.factory] !== 'undefined');
+		var halfPreventOverlap = (entity2.type._preventOverlapMap && typeof entity2.type._preventOverlapMap[entity1.type] !== 'undefined');
 		var right1 = entity1.right;
 		var right2 = entity2.right;
 		var bottom1 = entity1.bottom;
@@ -1460,18 +1553,19 @@ rollbackgameengine.components.preventOverlap = {
 //==================================================//
 
 rollbackgameengine.components.removedAfter = {
-	load : function(entity, frames) {
-		//add default properties to parent
-		entity.factory._maxttl = frames;
-		entity._ttl = frames;
+	loadType : function(type, options) {
+		//add default properties
+		type._maxttl = options.frames;
+	},
 
-		//return
-		return this;
+	loadEntity : function(entity, options) {
+		//add default properties
+		entity._ttl = options.frame;
 	},
 
 	addedToWorld : function(entity) {
 		//reset ttl
-		entity._ttl = entity.factory._maxttl;
+		entity._ttl = entity.type._maxttl;
 	},
 
 	update : function(entity) {
@@ -1490,11 +1584,11 @@ rollbackgameengine.components.removedAfter = {
 	},
 
 	encode : function(entity, outgoingMessage) {
-		outgoingMessage.addUnsignedInteger(entity._ttl, rollbackgameengine.networking.calculateUnsignedIntegerBitSize(entity.factory._maxttl));
+		outgoingMessage.addUnsignedInteger(entity._ttl, rollbackgameengine.networking.calculateUnsignedIntegerBitSize(entity.type._maxttl));
 	},
 
 	decode : function(entity, incomingMessage) {
-		entity._ttl = incomingMessage.nextUnsignedInteger(rollbackgameengine.networking.calculateUnsignedIntegerBitSize(entity.factory._maxttl));
+		entity._ttl = incomingMessage.nextUnsignedInteger(rollbackgameengine.networking.calculateUnsignedIntegerBitSize(entity.type._maxttl));
 	}
 }
 
@@ -1534,100 +1628,19 @@ rollbackgameengine.pool = {
 //==================================================//
 
 //expects components to be passed in
-rollbackgameengine.Entity = function(factory) {
-	//set factory
-	this.factory = factory;
+rollbackgameengine.Entity = function(type) {
+	//set type
+	this.type = type;
 
 	//reference to container world
 	this.world = null;
-}
-
-rollbackgameengine.Entity.prototype.loadComponents = function() {
-	//determine loaded
-	if(this.factory._loaded) {
-		//no loading needed
-		return;
-	}else {
-		//set loaded
-		this.factory._loaded = true;
-	}
-
-	//loop components
-	for(var i=0, j=arguments.length; i<j; i++) {
-		//addedToWorld
-		if(arguments[i].addedToWorld) {
-			//create list
-			if(!this.factory._addedToWorldComponents) {
-				this.factory._addedToWorldComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
-			}
-
-			//add to list
-			this.factory._addedToWorldComponents.add(arguments[i]);
-		}
-
-		//removedFromWorld
-		if(arguments[i].removedFromWorld) {
-			//create list
-			if(!this.factory._removedFromWorldComponents) {
-				this.factory._removedFromWorldComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
-			}
-
-			//add to list
-			this.factory._removedFromWorldComponents.add(arguments[i]);
-		}
-
-		//update
-		if(arguments[i].update) {
-			//create list
-			if(!this.factory._updateComponents) {
-				this.factory._updateComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
-			}
-
-			//add to list
-			this.factory._updateComponents.add(arguments[i]);
-		}
-
-		//render
-		if(arguments[i].render) {
-			//create list
-			if(!this.factory._renderComponents) {
-				this.factory._renderComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
-			}
-
-			//add to list
-			this.factory._renderComponents.add(arguments[i]);
-		}
-
-		//rollback
-		if(arguments[i].rollback) {
-			//create list
-			if(!this.factory._rollbackComponents) {
-				this.factory._rollbackComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
-			}
-
-			//add to list
-			this.factory._rollbackComponents.add(arguments[i]);
-		}
-
-		//sync
-		if(this.factory.sync && (this.factory.sync === rollbackgameengine.sync.singleton || this.factory.sync === rollbackgameengine.sync.sometimes || this.factory.sync === rollbackgameengine.sync.often)
-			&& arguments[i].encode && arguments[i].decode) {
-			//create list
-			if(!this.factory._syncComponents) {
-				this.factory._syncComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
-			}
-
-			//add to list
-			this.factory._syncComponents.add(arguments[i]);
-		}
-	}
-}
+};
 
 rollbackgameengine.Entity.prototype.addedToWorld = function() {
 	//components
-	if(this.factory._addedToWorldComponents) {
+	if(this.type._addedToWorldComponents) {
 		//get top most element
-		var current = this.factory._addedToWorldComponents.head;
+		var current = this.type._addedToWorldComponents.head;
 
 		//loop through list
 		while (current) {
@@ -1639,17 +1652,17 @@ rollbackgameengine.Entity.prototype.addedToWorld = function() {
 		}
 	}
 
-	//factory
-	if(this.factory.addedToWorld) {
-		this.factory.addedToWorld(this);
+	//type
+	if(this.type.addedToWorld) {
+		this.type.addedToWorld(this);
 	}
-}
+};
 
 rollbackgameengine.Entity.prototype.removedFromWorld = function() {
 	//components
-	if(this.factory._removedFromWorldComponents) {
+	if(this.type._removedFromWorldComponents) {
 		//get top most element
-		var current = this.factory._removedFromWorldComponents.head;
+		var current = this.type._removedFromWorldComponents.head;
 
 		//loop through list
 		while (current) {
@@ -1661,17 +1674,17 @@ rollbackgameengine.Entity.prototype.removedFromWorld = function() {
 		}
 	}
 
-	//factory
-	if(this.factory.removedFromWorld) {
-		this.factory.removedFromWorld(this);
+	//type
+	if(this.type.removedFromWorld) {
+		this.type.removedFromWorld(this);
 	}
-}
+};
 
 rollbackgameengine.Entity.prototype.update = function() {
 	//components
-	if(this.factory._updateComponents) {
+	if(this.type._updateComponents) {
 		//get top most element
-		var current = this.factory._updateComponents.head;
+		var current = this.type._updateComponents.head;
 
 		//loop through list
 		while (current) {
@@ -1683,17 +1696,17 @@ rollbackgameengine.Entity.prototype.update = function() {
 		}
 	}
 
-	//factory
-	if(this.factory.update) {
-		this.factory.update(this);
+	//type
+	if(this.type.update) {
+		this.type.update(this);
 	}
-}
+};
 
 rollbackgameengine.Entity.prototype.render = function(ctx) {
 	//components
-	if(this.factory._renderComponents) {
+	if(this.type._renderComponents) {
 		//get top most element
-		var current = this.factory._renderComponents.head;
+		var current = this.type._renderComponents.head;
 
 		//loop through list
 		while (current) {
@@ -1705,17 +1718,17 @@ rollbackgameengine.Entity.prototype.render = function(ctx) {
 		}
 	}
 
-	//factory
-	if(this.factory.render) {
-		this.factory.render(this, ctx);
+	//type
+	if(this.type.render) {
+		this.type.render(this, ctx);
 	}
-}
+};
 
 rollbackgameengine.Entity.prototype.rollback = function(e) {
 	//components
-	if(this.factory._rollbackComponents) {
+	if(this.type._rollbackComponents) {
 		//declare variables
-		var current = this.factory._rollbackComponents.head;
+		var current = this.type._rollbackComponents.head;
 
 		//loop through list
 		while (current) {
@@ -1727,17 +1740,17 @@ rollbackgameengine.Entity.prototype.rollback = function(e) {
 		}
 	}
 
-	//factory
-	if(this.factory.rollback) {
-		this.factory.rollback(this, e);
+	//type
+	if(this.type.rollback) {
+		this.type.rollback(this, e);
 	}
-}
+};
 
 rollbackgameengine.Entity.prototype.encode = function(outgoingMessage) {
 	//components
-	if(this.factory._syncComponents) {
+	if(this.type._syncComponents) {
 		//declare variables
-		var current = this.factory._syncComponents.head;
+		var current = this.type._syncComponents.head;
 
 		//loop through list
 		while (current) {
@@ -1749,17 +1762,17 @@ rollbackgameengine.Entity.prototype.encode = function(outgoingMessage) {
 		}
 	}
 
-	//factory
-	if(this.factory.encode) {
-		this.factory.encode(this, outgoingMessage);
+	//type
+	if(this.type.encode) {
+		this.type.encode(this, outgoingMessage);
 	}
-}
+};
 
 rollbackgameengine.Entity.prototype.decode = function(incomingMessage) {
 	//components
-	if(this.factory._syncComponents) {
+	if(this.type._syncComponents) {
 		//declare variables
-		var current = this.factory._syncComponents.head;
+		var current = this.type._syncComponents.head;
 
 		//loop through list
 		while (current) {
@@ -1771,18 +1784,17 @@ rollbackgameengine.Entity.prototype.decode = function(incomingMessage) {
 		}
 	}
 
-	//factory
-	if(this.factory.decode) {
-		this.factory.decode(this, incomingMessage);
+	//type
+	if(this.type.decode) {
+		this.type.decode(this, incomingMessage);
 	}
-}
+};
 
 //==================================================//
 // rollbackgameengine/world.js
 //==================================================//
 
-//expects list of factories as arguments
-rollbackgameengine.World = function() {
+rollbackgameengine.World = function(options) {
 	//frame
 	this.frame = 0;
 
@@ -1791,58 +1803,163 @@ rollbackgameengine.World = function() {
 	this.entitiesDictionary = {}; //used for quick lookup in add/recycle/remove
 
 	//collisions
-	this.collisions = new rollbackgameengine.datastructures.SinglyLinkedList(); //factories
+	this.collisions = new rollbackgameengine.datastructures.SinglyLinkedList(); //types
 
 	//helper linked lists
 	this.toAdd = new rollbackgameengine.datastructures.SinglyLinkedList();
 	this.toRecycle = new rollbackgameengine.datastructures.SinglyLinkedList();
 	this.toRemove = new rollbackgameengine.datastructures.SinglyLinkedList();
 
-	//factory tracking variables
-	var factory = null;
+	//type tracking variables
+	var type = null;
 	var list = null;
 
-	//loop through arguments
-	for(var i=0, j=arguments.length; i<j; i++) {
-		//set factory
-		factory = arguments[i];
+	//loop through types
+	for(var i=0, j=options.types.length; i<j; i++) {
+		//set type
+		type = options.types[i];
 
 		//give ID
-		rollbackgameengine.giveID(factory);
+		rollbackgameengine.giveID(type);
 
 		//create list
 		list = new rollbackgameengine.datastructures.DoublyLinkedList("prevEntity", "nextEntity");
-		list.factory = factory;
+		list.type = type;
 
 		//add to entities list
 		this.entitiesList.add(list);
 
 		//add to dictionary
-		this.entitiesDictionary[factory] = list;
+		this.entitiesDictionary[type] = list;
 	}
 
 	//add components and collisions variables
-	var entity = null;
+	var components = null;
+	var component = null;
+	var loadOptions = null;
 	var current = null;
 	var currentCollision = null;
 	var found = false;
 
-	//loop through parameters
-	for(var i=0, j=arguments.length; i<j; i++) {
-		//set factory
-		factory = arguments[i];
+	//loop through types
+	for(var i=0, j=options.types.length; i<j; i++) {
+		//set type
+		type = options.types[i];
 
-		//create dummy pooled entity - it creates the collision maps for the factories
-		entity = this._createEntity(factory);
-		rollbackgameengine.pool.add(factory, entity);
+		//load
+		if(!type.loaded) {
+			//get components
+			components = type.components();
+
+			//loop
+			for(var k=0, l=components.length; k<l; k++) {
+				//component and options
+				component = components[k];
+				loadOptions = components[++k];
+
+				//loadType
+				if(component.loadType) {
+					//load
+					component.loadType(type, loadOptions);
+				}
+
+				//load
+				if(component.loadEntity) {
+					//create list
+					if(!type._loadComponents) {
+						type._loadComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
+					}
+
+					//add
+					type._loadComponents.add(component);
+
+					//create list
+					if(!type._loadOptions) {
+						type._loadOptions = new rollbackgameengine.datastructures.SinglyLinkedList();
+					}
+
+					//add
+					type._loadOptions.add(loadOptions);
+				}
+
+				//addedToWorld
+				if(component.addedToWorld) {
+					//create list
+					if(!type._addedToWorldComponents) {
+						type._addedToWorldComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
+					}
+
+					//add
+					type._addedToWorldComponents.add(component);
+				}
+
+				//removedFromWorld
+				if(component.removedFromWorld) {
+					//create list
+					if(!type._removedFromWorldComponents) {
+						type._removedFromWorldComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
+					}
+
+					//add
+					type._removedFromWorldComponents.add(component);
+				}
+
+				//update
+				if(component.update) {
+					//create list
+					if(!type._updateComponents) {
+						type._updateComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
+					}
+
+					//add
+					type._updateComponents.add(component);
+				}
+
+				//render
+				if(component.render) {
+					//create list
+					if(!type._renderComponents) {
+						type._renderComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
+					}
+
+					//add
+					type._renderComponents.add(component);
+				}
+
+				//rollback
+				if(component.rollback) {
+					//create list
+					if(!type._rollbackComponents) {
+						type._rollbackComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
+					}
+
+					//add
+					type._rollbackComponents.add(component);
+				}
+
+				//sync
+				if(type.sync && (type.sync === rollbackgameengine.sync.singleton || type.sync === rollbackgameengine.sync.sometimes || type.sync === rollbackgameengine.sync.often) && component.encode && component.decode) {
+					//create list
+					if(!type._syncComponents) {
+						type._syncComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
+					}
+
+					//add to list
+					type._syncComponents.add(component);
+				}
+			}
+
+			//set loaded
+			type.loaded = true;
+		}
 
 		//add collisions if able
-		if(typeof factory._collisionMap !== 'undefined') {
-			//loop through factories
+		if(typeof type._collisionMap !== 'undefined') {
+			//loop through types
 			current = this.entitiesList.head;
 			while(current) {
 				//exists
-				if(factory._collisionMap.hasOwnProperty(current.factory)) {
+				if(type._collisionMap.hasOwnProperty(current.type)) {
 					//reset found
 					found = false;
 
@@ -1850,7 +1967,7 @@ rollbackgameengine.World = function() {
 					currentCollision = this.collisions.head;
 					while(currentCollision) {
 						//check found
-						if(currentCollision.obj.factory1 === factory && currentCollision.obj.factory2 === current.factory || currentCollision.obj.factory1 === current.factory && currentCollision.obj.factory2 === factory) {
+						if(currentCollision.obj.type1 === type && currentCollision.obj.type2 === current.type || currentCollision.obj.type1 === current.type && currentCollision.obj.type2 === type) {
 							found = true;
 							break;
 						}
@@ -1861,7 +1978,7 @@ rollbackgameengine.World = function() {
 
 					//add collisions
 					if(!found) {
-						this.collisions.add({factory1:factory, factory2:current.factory});
+						this.collisions.add({type1:type, type2:current.type});
 					}
 				}
 
@@ -1870,49 +1987,63 @@ rollbackgameengine.World = function() {
 			}
 		}
 	}
-}
+};
 
 //private
 //pools automatically
-rollbackgameengine.World.prototype._createEntity = function(factory) {
+rollbackgameengine.World.prototype._createEntity = function(type) {
 	//grab from pool
-	var entity = rollbackgameengine.pool.acquire(factory);
+	var entity = rollbackgameengine.pool.acquire(type);
 
 	//make new entity if needed
 	if(!entity) {
 		//create entity
-		entity = new rollbackgameengine.Entity(factory);
+		entity = new rollbackgameengine.Entity(type);
 
 		//load
-		factory.load(entity);
+		if(type._loadComponents) {
+			//get top most element
+			var component = type._loadComponents.head;
+			var options = type._loadOptions.head;
+
+			//loop through list
+			while (component) {
+				//load
+				component.obj.loadEntity(entity, options.obj);
+
+				//increment
+				component = component.next;
+				options = options.next;
+			}
+		}
 	}
 
 	//return
 	return entity;
-}
+};
 
-//expects a factory with a components array
+//expects a type with a components array
 //pools automatically
-rollbackgameengine.World.prototype.addEntity = function(factory) {
+rollbackgameengine.World.prototype.addEntity = function(type) {
 	//create entity
-	var entity = this._createEntity(factory);
+	var entity = this._createEntity(type);
 
 	//push toAdd
 	this.toAdd.add(entity);
 
 	//return
 	return entity;
-}
+};
 
 rollbackgameengine.World.prototype.recycleEntity = function(entity) {
 	//push toRecycle
 	this.toRecycle.add(entity);
-}
+};
 
 rollbackgameengine.World.prototype.removeEntity = function(entity) {
 	//push toRecycle
 	this.toRemove.add(entity);
-}
+};
 
 rollbackgameengine.World.prototype.updateLists = function() {
 	//declare variables
@@ -1927,7 +2058,7 @@ rollbackgameengine.World.prototype.updateLists = function() {
 		entity.world = this;
 
 		//add to list
-		this.entitiesDictionary[entity.factory].add(entity);
+		this.entitiesDictionary[entity.type].add(entity);
 
 		//addedToWorld
 		entity.addedToWorld();
@@ -1939,10 +2070,10 @@ rollbackgameengine.World.prototype.updateLists = function() {
 		entity = this.toRecycle.pop();
 
 		//remove from entity list
-		this.entitiesDictionary[entity.factory].remove(entity);
+		this.entitiesDictionary[entity.type].remove(entity);
 
 		//add to pool
-		rollbackgameengine.pool.add(entity.factory, entity);
+		rollbackgameengine.pool.add(entity.type, entity);
 
 		//removedFromWorld
 		entity.removedFromWorld();
@@ -1957,7 +2088,7 @@ rollbackgameengine.World.prototype.updateLists = function() {
 		entity = this.toRemove.pop();
 
 		//remove from entity list
-		this.entitiesDictionary[entity.factory].remove(entity);
+		this.entitiesDictionary[entity.type].remove(entity);
 
 		//removedFromWorld
 		entity.removedFromWorld();
@@ -1965,7 +2096,7 @@ rollbackgameengine.World.prototype.updateLists = function() {
 		//remove world
 		entity.world = null;
 	}
-}
+};
 
 //consider having a collideFirst function
 
@@ -1981,50 +2112,50 @@ rollbackgameengine.World.prototype.collides = function(entity1, entity2) {
 
 	//false
 	return false;
-}
+};
 
-rollbackgameengine.World.prototype.checkCollision = function(factory1, factory2, callback) {
+rollbackgameengine.World.prototype.checkCollision = function(type1, type2, callback) {
 	//declare variables
 	var list1 = null;
 	var list2 = null;
-	var currentFactory1 = null;
-	var currentFactory2 = null;
+	var current1 = null;
+	var current2 = null;
 
 	//get lists
-	list1 = this.entitiesDictionary[factory1];
-	list2 = this.entitiesDictionary[factory2];
+	list1 = this.entitiesDictionary[type1];
+	list2 = this.entitiesDictionary[type2];
 
 	//validate exists
 	if(!list1 || !list2) {
 		return;
 	}
 
-	//loop through factory 1
-	currentFactory1 = list1.head;
-	while (currentFactory1) {
-		//loop through factory 2
-		currentFactory2 = list2.head;
-		while(currentFactory2) {
+	//loop through type 1
+	current1 = list1.head;
+	while (current1) {
+		//loop through type 2
+		current2 = list2.head;
+		while(current2) {
 			//collide
-			if(this.collides(currentFactory1, currentFactory2)) {
-				callback(currentFactory1, currentFactory2);
+			if(this.collides(current1, current2)) {
+				callback(current1, current2);
 			}
 
 			//increment
-			currentFactory2 = currentFactory2.nextEntity;
+			current2 = current2.nextEntity;
 		}
 
 		//increment
-		currentFactory1 = currentFactory1.nextEntity;
+		current1 = current1.nextEntity;
 	}
-}
+};
 
 //private
 //collision callback
 rollbackgameengine.World.prototype._handleCollision = function(entity1, entity2) {
 	entity1.didCollide(entity2);
 	entity2.didCollide(entity1);
-}
+};
 
 rollbackgameengine.World.prototype.updateCollisions = function() {
 	//declare variables
@@ -2033,19 +2164,19 @@ rollbackgameengine.World.prototype.updateCollisions = function() {
 	//loop through collisions
 	while(currentCollision) {
 		//check collision
-		this.checkCollision(currentCollision.obj.factory1, currentCollision.obj.factory2, this._handleCollision);
+		this.checkCollision(currentCollision.obj.type1, currentCollision.obj.type2, this._handleCollision);
 
 		//increment
 		currentCollision = currentCollision.next;
 	}
-}
+};
 
 rollbackgameengine.World.prototype.updateEntities = function() {
 	//declare variables
 	var currentOuterList = this.entitiesList.head;
 	var currentInnerList = null;
 
-	//loop through factories
+	//loop through types
 	while(currentOuterList) {
 		//set head
 		currentInnerList = currentOuterList.head;
@@ -2062,7 +2193,7 @@ rollbackgameengine.World.prototype.updateEntities = function() {
 		//increment
 		currentOuterList = currentOuterList.nextEntityList;
 	}
-}
+};
 
 rollbackgameengine.World.prototype.update = function() {
 	//frame check
@@ -2082,14 +2213,14 @@ rollbackgameengine.World.prototype.update = function() {
 	
 	//update frame
 	this.frame++;
-}
+};
 
 rollbackgameengine.World.prototype.render = function(ctx) {
 	//declare variables
 	var currentOuterList = this.entitiesList.head;
 	var currentInnerList = null;
 
-	//loop through factories
+	//loop through tpes
 	while(currentOuterList) {
 		//set head
 		currentInnerList = currentOuterList.head;
@@ -2106,7 +2237,7 @@ rollbackgameengine.World.prototype.render = function(ctx) {
 		//increment
 		currentOuterList = currentOuterList.nextEntityList;
 	}
-}
+};
 
 rollbackgameengine.World.prototype.rollback = function(world) {
 	//declare list variables
@@ -2116,7 +2247,7 @@ rollbackgameengine.World.prototype.rollback = function(world) {
 	var otherCurrentInnerList = null;
 	var temp = null;
 
-	//loop through my factories
+	//loop through my types
 	while(myCurrentOuterList) {
 		//get heads of each list
 		myCurrentInnerList = myCurrentOuterList.head;
@@ -2147,7 +2278,7 @@ rollbackgameengine.World.prototype.rollback = function(world) {
 		//loop add remaining
 		while(otherCurrentInnerList) {
 			//create new
-			temp = this.addEntity(otherCurrentInnerList.factory);
+			temp = this.addEntity(otherCurrentInnerList.type);
 
 			//rollback
 			temp.rollback(otherCurrentInnerList);
@@ -2166,22 +2297,22 @@ rollbackgameengine.World.prototype.rollback = function(world) {
 
 	//rollback frame
 	this.frame = world.frame;
-}
+};
 
 rollbackgameengine.World.prototype.encode = function(outgoingMessage) {
 	//declare variables
 	var currentOuterList = this.entitiesList.head;
 	var currentInnerList = null;
 
-	//loop through factories
+	//loop through types
 	while(currentOuterList) {
 		//check encode
-		if(currentOuterList.factory.sync) {
+		if(currentOuterList.type.sync) {
 			//set head
 			currentInnerList = currentOuterList.head;
 
 			//encode type
-			if(currentOuterList.factory.sync === rollbackgameengine.sync.sometimes) {
+			if(currentOuterList.type.sync === rollbackgameengine.sync.sometimes) {
 				//sometimes
 				if(currentInnerList) {
 					//at least one
@@ -2197,7 +2328,7 @@ rollbackgameengine.World.prototype.encode = function(outgoingMessage) {
 					//boolean
 					outgoingMessage.addBoolean(false);
 				}
-			}else if(currentOuterList.factory.sync === rollbackgameengine.sync.often) {
+			}else if(currentOuterList.type.sync === rollbackgameengine.sync.often) {
 				//often
 
 				//count
@@ -2217,7 +2348,7 @@ rollbackgameengine.World.prototype.encode = function(outgoingMessage) {
 		//increment
 		currentOuterList = currentOuterList.nextEntityList;
 	}
-}
+};
 
 //todo - have this actually create/remove stuff
 rollbackgameengine.World.prototype.decode = function(incomingMessage) {
@@ -2227,15 +2358,15 @@ rollbackgameengine.World.prototype.decode = function(incomingMessage) {
 	var count = 0;
 	var temp = null;
 
-	//loop through factories
+	//loop through types
 	while(currentOuterList) {
 		//check encode
-		if(currentOuterList.factory.sync) {
+		if(currentOuterList.type.sync) {
 			//set head
 			currentInnerList = currentOuterList.head;
 
 			//encode type
-			if(currentOuterList.factory.sync === rollbackgameengine.sync.singleton) {
+			if(currentOuterList.type.sync === rollbackgameengine.sync.singleton) {
 				//singleton
 
 				//loop through entities
@@ -2246,7 +2377,7 @@ rollbackgameengine.World.prototype.decode = function(incomingMessage) {
 					//increment
 					currentInnerList = currentInnerList.nextEntity;
 				}
-			}else if(currentOuterList.factory.sync === rollbackgameengine.sync.sometimes && !incomingMessage.nextBoolean()) {
+			}else if(currentOuterList.type.sync === rollbackgameengine.sync.sometimes && !incomingMessage.nextBoolean()) {
 				//sometimes with no elements
 
 				//loop recycle remaining
@@ -2257,7 +2388,7 @@ rollbackgameengine.World.prototype.decode = function(incomingMessage) {
 					//increment
 					currentInnerList = currentInnerList.nextEntity;
 				}
-			}else if(currentOuterList.factory.sync === rollbackgameengine.sync.sometimes || currentOuterList.factory.sync === rollbackgameengine.sync.often) {
+			}else if(currentOuterList.type.sync === rollbackgameengine.sync.sometimes || currentOuterList.type.sync === rollbackgameengine.sync.often) {
 				//sometimes or often
 
 				//count
@@ -2277,7 +2408,7 @@ rollbackgameengine.World.prototype.decode = function(incomingMessage) {
 						//new
 
 						//create new
-						temp = this.addEntity(currentOuterList.factory);
+						temp = this.addEntity(currentOuterList.type);
 
 						//decode
 						temp.decode(incomingMessage);
@@ -2303,4 +2434,4 @@ rollbackgameengine.World.prototype.decode = function(incomingMessage) {
 	this.updateLists();
 
 	//set frame?
-}
+};

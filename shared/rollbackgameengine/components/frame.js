@@ -4,12 +4,12 @@
 //==================================================//
 
 rollbackgameengine.components.frame = {
-	load : function(entity, x, y, width, height) {
-		//add default properties to parent
-		entity.x = x;
-		entity.y = y;
-		entity.width = width;
-		entity.height = height;
+	loadEntity : function(entity, options) {
+		//add default properties
+		entity.x = options.x;
+		entity.y = options.y;
+		entity.width = options.width;
+		entity.height = options.height;
 		entity.moveX = 0;
 		entity.moveY = 0;
 
@@ -21,9 +21,6 @@ rollbackgameengine.components.frame = {
 
 		//add center function
 		entity.center = this._center;
-
-		//return
-		return this;
 	},
 
 	update : function(entity) {

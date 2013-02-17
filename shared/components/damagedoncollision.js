@@ -4,14 +4,11 @@
 //==================================================//
 
 shooter.components.damagedOnCollision = {
-	load : function(entity) {
+	loadType : function(type, options) {
 		//register collisions
-		for(var i=1, j=arguments.length; i<j; i++) {
-			entity.registerCollision(arguments[i], this);
+		for(var i=0, j=options.types.length; i<j; i++) {
+			type.registerCollision(options.types[i], this);
 		}
-
-		//return
-		return this;
 	},
 
 	didCollide : function(entity1, entity2) {

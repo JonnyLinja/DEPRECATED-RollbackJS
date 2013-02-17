@@ -4,13 +4,13 @@
 //==================================================//
 
 shooter.entities.explosion = {
-	//load
-	load : function(entity) {
-		entity.loadComponents(
-			rollbackgameengine.components.frame.load(entity, 0, 0, 79, 85),
-			rollbackgameengine.components.spritemap.load(entity, "images/blood.png"),
-			rollbackgameengine.components.removedAfter.load(entity, 9)
-		);
+	//components
+	components : function() {
+		return [
+			rollbackgameengine.components.frame,			{ x:0, y:0, width:79, height:85 },
+			rollbackgameengine.components.spritemap,		{ source:"images/blood.png" },
+			rollbackgameengine.components.removedAfter,		{ frames:9 }
+		];
 	},
 
 	//sync

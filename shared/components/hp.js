@@ -4,12 +4,9 @@
 //==================================================//
 
 shooter.components.hp = {
-	load : function(entity, maxHP) {
+	loadEntity : function(entity, options) {
 		//set hp
-		entity.hp = maxHP;
-
-		//return
-		return this;
+		entity.hp = options.hp;
 	},
 
 	rollback : function(entity1, entity2) {

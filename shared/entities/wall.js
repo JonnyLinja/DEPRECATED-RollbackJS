@@ -4,11 +4,11 @@
 //==================================================//
 
 shooter.entities.wall = {
-	//load
-	load : function(entity) {
-		entity.loadComponents(
-			rollbackgameengine.components.frame.load(entity, 0, 0, 0, 0),
-			rollbackgameengine.components.collision.load(entity)
-		);
-	},
+	//components
+	components : function() {
+		return [
+			rollbackgameengine.components.frame,			{ x:0, y:0, width:0, height:0 },
+			rollbackgameengine.components.collision,		{ }
+		];
+	}
 };

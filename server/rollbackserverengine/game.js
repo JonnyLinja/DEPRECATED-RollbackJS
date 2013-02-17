@@ -32,12 +32,9 @@ shared\entities\wall.js shared\gamesimulation.js shared\commands\command.js shra
 //==================================================//
 
 shooter.components.hp = {
-	load : function(entity, maxHP) {
+	loadEntity : function(entity, options) {
 		//set hp
-		entity.hp = maxHP;
-
-		//return
-		return this;
+		entity.hp = options.hp;
 	},
 
 	rollback : function(entity1, entity2) {
@@ -50,14 +47,11 @@ shooter.components.hp = {
 //==================================================//
 
 shooter.components.velocity = {
-	load : function(entity, speed) {
+	loadEntity : function(entity, options) {
 		//set velocity values
-		entity.speed = speed;
+		entity.speed = options.speed;
 		entity.vx = 0;
 		entity.vy = 0;
-
-		//return
-		return this;
 	},
 
 	update : function(entity) {
@@ -78,11 +72,6 @@ shooter.components.velocity = {
 //==================================================//
 
 shooter.components.removeOffscreen = {
-	load : function(entity) {
-		//return
-		return this;
-	},
-
 	update : function(entity) {
 		//hardcoded width and height until can figure out where to store width/height
 		if(entity.right < 0 || entity.x > 800 || entity.bottom < 0 || entity.y > 640) {
@@ -96,14 +85,11 @@ shooter.components.removeOffscreen = {
 //==================================================//
 
 shooter.components.damagedOnCollision = {
-	load : function(entity) {
+	loadType : function(type, options) {
 		//register collisions
-		for(var i=1, j=arguments.length; i<j; i++) {
-			entity.registerCollision(arguments[i], this);
+		for(var i=0, j=options.types.length; i<j; i++) {
+			type.registerCollision(options.types[i], this);
 		}
-
-		//return
-		return this;
 	},
 
 	didCollide : function(entity1, entity2) {
@@ -116,14 +102,11 @@ shooter.components.damagedOnCollision = {
 //==================================================//
 
 shooter.components.explodesOnCollision = {
-	load : function(entity) {
+	loadType : function(type, options) {
 		//register collisions
-		for(var i=1, j=arguments.length; i<j; i++) {
-			entity.registerCollision(arguments[i], this);
+		for(var i=0, j=options.types.length; i<j; i++) {
+			type.registerCollision(options.types[i], this);
 		}
-
-		//return
-		return this;
 	},
 
 	didCollide : function(entity1, entity2) {
@@ -141,19 +124,33 @@ shooter.components.explodesOnCollision = {
 //==================================================//
 
 shooter.entities.alien = {
-	//load
-	load : function(entity) {
-		entity.loadComponents(
-			rollbackgameengine.components.frame.load(entity, 0, 0, 31, 33),
-			rollbackgameengine.components.collision.load(entity),
-			shooter.components.damagedOnCollision.load(entity, shooter.entities.bullet),
-			rollbackgameengine.components.preventOverlap.load(entity, shooter.entities.human, shooter.entities.wall),
-			rollbackgameengine.components.spritemap.load(entity, "images/aliengun.png")
-		);
+	//components
+	components : function() {
+		return [
+			rollbackgameengine.components.frame,			{ x:0, y:0, width:31, height:33 },
+			rollbackgameengine.components.collision,		{ },
+			shooter.components.damagedOnCollision,			{ types:[shooter.entities.bullet] },
+			rollbackgameengine.components.preventOverlap,	{ types:[shooter.entities.human, shooter.entities.wall] },
+			rollbackgameengine.components.spritemap,		{ source:"images/aliengun.png" }
+		];
 	},
 
 	//sync
 	sync : rollbackgameengine.sync.singleton
+
+	/*,
+
+	//animations
+	animations : {
+		walkdown	:	{ frames:[0, 1, 2],		loop:true		rate:3	},
+		facedown	:	{ frames:[1],			loop:false		rate:1	},
+		walkright	:	{ frames:[3, 4, 5],		loop:true		rate:3	},
+		faceright	:	{ frames:[4],			loop:false		rate:1	},
+		walkleft	:	{ frames:[6, 7, 8],		loop:true		rate:3	},
+		faceleft	:	{ frames:[7],			loop:false		rate:1	},
+		walkup		:	{ frames:[9, 10, 11],	loop:true		rate:3	},
+		faceup 		:	{ frames:[10],			loop:false		rate:1	}
+	}*/
 };
 
 //==================================================//
@@ -161,16 +158,19 @@ shooter.entities.alien = {
 //==================================================//
 
 shooter.entities.human = {
-	//load
-	load : function(entity) {
-		entity.loadComponents(
-			rollbackgameengine.components.frame.load(entity, 0, 0, 34, 33),
-			rollbackgameengine.components.collision.load(entity),
-			shooter.components.damagedOnCollision.load(entity, shooter.entities.bullet),
-			rollbackgameengine.components.preventOverlap.load(entity, shooter.entities.alien, shooter.entities.wall),
-			rollbackgameengine.components.spritemap.load(entity, "images/humangun.png")
-		);
+	//components
+	components : function() {
+		return [
+			rollbackgameengine.components.frame,			{ x:0, y:0, width:34, height:33 },
+			rollbackgameengine.components.collision,		{ },
+			shooter.components.damagedOnCollision,			{ types:[shooter.entities.bullet] },
+			rollbackgameengine.components.preventOverlap,	{ types:[shooter.entities.alien, shooter.entities.wall] },
+			rollbackgameengine.components.spritemap,		{ source:"images/humangun.png" }
+		];
 	},
+
+	//sync
+	sync : rollbackgameengine.sync.singleton,
 
 	//animations
 	animations : {
@@ -182,10 +182,20 @@ shooter.entities.human = {
 		faceleft : 7,
 		walkup : [9, 10, 11],
 		faceup : 10
-	},
-
-	//sync
-	sync : rollbackgameengine.sync.singleton
+	}
+	/*
+	//animations
+	animations : {
+		walkdown	:	{ frames:[0, 1, 2],		loop:true		rate:3	},
+		facedown	:	{ frames:[1],			loop:false		rate:1	},
+		walkright	:	{ frames:[3, 4, 5],		loop:true		rate:3	},
+		faceright	:	{ frames:[4],			loop:false		rate:1	},
+		walkleft	:	{ frames:[6, 7, 8],		loop:true		rate:3	},
+		faceleft	:	{ frames:[7],			loop:false		rate:1	},
+		walkup		:	{ frames:[9, 10, 11],	loop:true		rate:3	},
+		faceup 		:	{ frames:[10],			loop:false		rate:1	}
+	}
+	*/
 };
 
 //==================================================//
@@ -193,16 +203,16 @@ shooter.entities.human = {
 //==================================================//
 
 shooter.entities.bullet = {
-	//load
-	load : function(entity) {
-		entity.loadComponents(
-			rollbackgameengine.components.frame.load(entity, 0, 0, 14, 12),
-			rollbackgameengine.components.collision.load(entity),
-			shooter.components.velocity.load(entity, 10),
-			shooter.components.removeOffscreen.load(entity),
-			shooter.components.explodesOnCollision.load(entity, shooter.entities.human, shooter.entities.alien),
-			rollbackgameengine.components.spritemap.load(entity, "images/airball.png")
-		);
+	//components
+	components : function() {
+		return [
+			rollbackgameengine.components.frame,			{ x:0, y:0, width:14, height:12 },
+			rollbackgameengine.components.collision,		{ },
+			shooter.components.velocity,					{ speed:10 },
+			shooter.components.removeOffscreen,				{ },
+			shooter.components.explodesOnCollision,			{ types:[shooter.entities.human, shooter.entities.alien] },
+			rollbackgameengine.components.spritemap,		{ source:"images/airball.png"}
+		];
 	},
 
 	//sync
@@ -226,13 +236,13 @@ shooter.entities.bullet = {
 //==================================================//
 
 shooter.entities.explosion = {
-	//load
-	load : function(entity) {
-		entity.loadComponents(
-			rollbackgameengine.components.frame.load(entity, 0, 0, 79, 85),
-			rollbackgameengine.components.spritemap.load(entity, "images/blood.png"),
-			rollbackgameengine.components.removedAfter.load(entity, 9)
-		);
+	//components
+	components : function() {
+		return [
+			rollbackgameengine.components.frame,			{ x:0, y:0, width:79, height:85 },
+			rollbackgameengine.components.spritemap,		{ source:"images/blood.png" },
+			rollbackgameengine.components.removedAfter,		{ frames:9 }
+		];
 	},
 
 	//sync
@@ -256,13 +266,13 @@ shooter.entities.explosion = {
 //==================================================//
 
 shooter.entities.wall = {
-	//load
-	load : function(entity) {
-		entity.loadComponents(
-			rollbackgameengine.components.frame.load(entity, 0, 0, 0, 0),
-			rollbackgameengine.components.collision.load(entity)
-		);
-	},
+	//components
+	components : function() {
+		return [
+			rollbackgameengine.components.frame,			{ x:0, y:0, width:0, height:0 },
+			rollbackgameengine.components.collision,		{ }
+		];
+	}
 };
 
 //==================================================//
@@ -271,7 +281,7 @@ shooter.entities.wall = {
 
 shooter.GameSimulation = function() {
 	//create world
-	this.world = new rollbackgameengine.World(shooter.entities.bullet, shooter.entities.alien, shooter.entities.human, shooter.entities.explosion, shooter.entities.wall);
+	this.world = new rollbackgameengine.World({types:[shooter.entities.bullet, shooter.entities.alien, shooter.entities.human, shooter.entities.explosion, shooter.entities.wall]});
 
 	//walls
 	var top = this.world.addEntity(shooter.entities.wall);
@@ -310,7 +320,7 @@ shooter.GameSimulation = function() {
 
 	//processor2
 	this.processor2 = new shooter.commands.CommandProcessor(this, this.p2);
-}
+};
 
 //getters and setters
 
@@ -336,17 +346,17 @@ shooter.GameSimulation.prototype.execute = function(player, command) {
 		//p2
 		this.processor2.update(command);
 	}
-}
+};
 
 //world functions
 
 shooter.GameSimulation.prototype.update = function() {
 	this.world.update();
-}
+};
 
 shooter.GameSimulation.prototype.render = function(ctx) {
 	this.world.render(ctx);
-}
+};
 
 shooter.GameSimulation.prototype.rollback = function(gamesimulation) {
 	//rollback processors
@@ -355,15 +365,15 @@ shooter.GameSimulation.prototype.rollback = function(gamesimulation) {
 
 	//rollback world
 	this.world.rollback(gamesimulation.world);
-}
+};
 
 shooter.GameSimulation.prototype.encode = function(m) {
 	this.world.encode(m);
-}
+};
 
 shooter.GameSimulation.prototype.decode = function(m) {
 	this.world.decode(m);
-}
+};
 
 //==================================================//
 // commands/command.js
@@ -373,7 +383,7 @@ shooter.GameSimulation.prototype.decode = function(m) {
 
 shooter.commands.Command = function() {
 	this.reset();
-}
+};
 
 //reset
 
@@ -386,7 +396,7 @@ shooter.commands.Command.prototype.reset = function() {
 	this.mouseDown = false;		//1
 	this.mouseX = 0;			//10
 	this.mouseY = 0;			//10
-}
+};
 
 //loading
 
@@ -399,7 +409,7 @@ shooter.commands.Command.prototype.loadFromMessage = function(incomingmessage) {
 	this.mouseDown = incomingmessage.nextBoolean();
 	this.mouseX = incomingmessage.nextUnsignedInteger(10);
 	this.mouseY = incomingmessage.nextUnsignedInteger(10);
-}
+};
 
 shooter.commands.Command.prototype.loadFromCommand = function(command) {
 	//booleans
@@ -410,7 +420,7 @@ shooter.commands.Command.prototype.loadFromCommand = function(command) {
 	this.mouseDown = command.mouseDown;
 	this.mouseX = command.mouseX;
 	this.mouseY = command.mouseY;
-}
+};
 
 //sending
 
@@ -425,13 +435,13 @@ shooter.commands.Command.prototype.addDataToMessage = function(outgoingmessage) 
 	outgoingmessage.addBoolean(this.mouseDown);
 	outgoingmessage.addUnsignedInteger(this.mouseX, 10);
 	outgoingmessage.addUnsignedInteger(this.mouseY, 10);
-}
+};
 
 //helper
 
 shooter.commands.Command.prototype.toString = function() {
 	return "<" + this.w + ", " + this.a + ", " + this.s + ", " + this.d + ">";
-}
+};
 
 //==================================================//
 // commands/commandprocessor.js
@@ -454,7 +464,7 @@ shooter.commands.CommandProcessor = function(simulation, player) {
 	this.mouseX = 0;
 	this.mouseY = 0;
 	this.mouseDown = false;
-}
+};
 
 shooter.commands.CommandProcessor.prototype.update = function(command) {
 	//math
@@ -609,9 +619,9 @@ shooter.commands.CommandProcessor.prototype.update = function(command) {
 		//this.player.spritemapAnimationFrame = shooter.entities.human.animations.facedown;
 	}
 	*/
-}
+};
 
 shooter.commands.CommandProcessor.prototype.rollback = function(p) {
 	//rollback values
 	this.mouseDown = p.mouseDown;
-}
+};
