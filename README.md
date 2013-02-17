@@ -2,26 +2,24 @@ RollbackJS
 ==========
 
 SMALL:
-- Add semicolons to prototype functions
 - Pass in width and height to world
 - Add offscreen check convenience function
 
 NEXT:
-- Add encode and decode to data for entities and components
-- Code sync check
-- Rewrite spritemaps to be more accommodating to sync checks (ID system)
-- Make sync value a variable length 4 bit encoding
-- Build master server simulation with data dump
+- Rewrite spritemaps to have string IDs locally and integer IDs for networking
+- Make frame value a variable length 4 bit encoding (optional set bit)
+- Make outgoing messages non hardcoded length (frame 4 bit, sync last int)
+- Compare sync check with server sync check
 
 AFTER:
-- Figure out system for canvas layers (background and boulders should have their own canvases)
-- Figure out system for offscreen canvas prerendering
+- Quake effect (see if can move the webpage DOM itself rather than camera)
+- Figure out system for offscreen canvas prerendering for rotations
 - Figure out system for canvas clearing bounding box
-- Remove zPosition from entity factories and replace with layer system
 
 LATER:
+- Figure out system for canvas layers (maybe, not necessary for my game)
+- Extend spritemap to allow for multiple spritemap sources and scaling
 - Interpolation (for direct player controlled objects)
 - Camera
-- Quake effect (see if can move the canvas itself rather than camera)
 - Sounds (once WebAudio becomes standard)
 - Tweens (maybe)
