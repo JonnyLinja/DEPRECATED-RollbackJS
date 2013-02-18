@@ -6,20 +6,31 @@
 //==================================================//
 
 rollbackgameengine.components.spritemap = {
+	loadType : function(type, options) {
+		//create animation
+		type._spritemapAnimations = {};
+
+		//add to animations
+		var a = null;
+		for(var i=0, j=options.animations.length; i<j; i++) {
+			//get animation
+			a = options.animations[i];
+
+			//store it
+			type._spritemapAnimations[a.id] = a;
+
+			//rewrite id
+			a.id = i;
+		}
+	},
+
 	loadEntity : function(entity, options) {
 		//save url
 		entity.imagesrc = options.source;
 
-		//values
-		entity._spritemapAnimationFrame = 0;
-		entity.spritemapAnimation = null;
-		entity.spritemapAnimationIsLooping = false;
-		entity.spritemapAnimationRate = 1;
+		//set up variables
+		entity._spritemapAnimation = null;
 		entity._spritemapAnimationPosition = 0;
-
-		//getters and setters
-		entity.__defineGetter__("spritemapAnimationFrame",  this._getSpritemapAnimationFrame);
-		entity.__defineSetter__("spritemapAnimationFrame",  this._setSpritemapAnimationFrame);
 
 		//animate function
 		entity.animateSpritemap = this._animateSpritemap;
@@ -27,33 +38,9 @@ rollbackgameengine.components.spritemap = {
 
 	update : function(entity) {
 		//animate
-		if(entity.spritemapAnimation && entity._spritemapAnimationPosition >= 0) {
+		if(entity._spritemapAnimation && entity._spritemapAnimationPosition >= 0) {
 			//increment array position
 			entity._spritemapAnimationPosition++;
-
-			//rate check
-			if(entity._spritemapAnimationPosition % entity.spritemapAnimationRate !== 0) {
-				return;
-			}
-
-			//get normalized position
-			var position = Math.floor(entity._spritemapAnimationPosition / entity.spritemapAnimationRate);
-
-			//max check
-			if(position >= entity.spritemapAnimation.length) {
-				if(entity.spritemapAnimationIsLooping) {
-					//set to beginning
-					entity._spritemapAnimationPosition = 0;
-					position = 0;
-				}else {
-					//end animation
-					entity._spritemapAnimationPosition = -1;
-					return;
-				}
-			}
-
-			//get frame
-			entity._spritemapAnimationFrame = entity.spritemapAnimation[position];
 		}
 	},
 
@@ -69,9 +56,43 @@ rollbackgameengine.components.spritemap = {
 			return;
 		}
 
+		//determine there is an animation
+		if(!entity._spritemapAnimation) {
+			return;
+		}
+
+		//rate
+		var rate = entity._spritemapAnimation.rate;
+		if(!rate) {
+			rate = 1;
+		}
+
+		//define frame
+		var frame = null;
+
+		//get normalized position
+		var position = Math.floor(entity._spritemapAnimationPosition / rate);
+
+		//max check
+		if(position >= entity._spritemapAnimation.frames.length) {
+			//maxed
+			if(entity._spritemapAnimation.loop) {
+				//set to beginning
+				entity._spritemapAnimationPosition = 0;
+				frame = entity._spritemapAnimation.frames[0];
+			}else {
+				//end animation
+				entity._spritemapAnimationPosition = -1;
+				frame = entity._spritemapAnimation.frames[0];
+			}
+		}else {
+			//not maxed
+			frame = entity._spritemapAnimation.frames[position];
+		}
+
 		//calculate offsets
 		var columns = Math.floor(entity.image.width / entity.width);
-		var offsetX = entity._spritemapAnimationFrame;
+		var offsetX = frame;
 		var offsetY = 0;
 		while(offsetX >= columns) {
 			offsetX -= columns;
@@ -86,69 +107,28 @@ rollbackgameengine.components.spritemap = {
 	rollback : function(entity1, entity2) {
 		//rollback values
 		entity1.imagesrc = entity2.imagesrc;
-		entity1._spritemapAnimationFrame = entity2._spritemapAnimationFrame;
-		entity1.spritemapAnimation = entity2.spritemapAnimation;
-		entity1.spritemapAnimationIsLooping = entity2.spritemapAnimationIsLooping;
+		entity1._spritemapAnimation = entity2._spritemapAnimation;
 		entity1._spritemapAnimationPosition = entity2._spritemapAnimationPosition;
-		entity1.spritemapAnimationRate = entity2.spritemapAnimationRate;
 	},
 
 	removedFromWorld : function(entity) {
 		//reset
-		entity._spritemapAnimationFrame = 0;
-		entity.spritemapAnimation = null;
-		entity.spritemapAnimationIsLooping = false;
-		entity.spritemapAnimationRate = 1;
+		entity._spritemapAnimation = null;
 		entity._spritemapAnimationPosition = 0;
 	},
 
 	//this refers to entity
-	_getSpritemapAnimationFrame : function() {
-		return this._spritemapAnimationFrame;
-	},
-
-	//this refers to entity
-	_setSpritemapAnimationFrame : function(f) {
-		//save frame
-		this._spritemapAnimationFrame = f;
-
-		//stop animations
-		this._spritemapAnimationPosition = -1;
-	},
-
-	//this refers to entity
-	_animateSpritemap : function(array, loop, rate) {
-		//default loop
-		if(typeof loop === 'undefined') {
-			loop = false;
-		}
-
-		//default rate
-		if(typeof rate === 'undefined' || rate < 1) {
-			rate = 1;
-		}
-
-		//save loop
-		this.spritemapAnimationIsLooping = loop;
-
-		//save rate
-		this.spritemapAnimationRate = rate;
-
-		//detect already animating
-		if(this.spritemapAnimation === array) {
-			//start a stopped animation
+	_animateSpritemap : function(animationID) {
+		if(this._spritemapAnimation && this._spritemapAnimation === this.type._spritemapAnimations[animationID]) {
+			//already animating it
 			if(this._spritemapAnimationPosition < 0) {
+				//start a stopped animation
 				this._spritemapAnimationPosition = 0;
-				this._spritemapAnimationFrame = array[0];
 			}
-
-			//return
-			return;
+		}else {
+			//new animation
+			this._spritemapAnimation = this.type._spritemapAnimations[animationID];
+			this._spritemapAnimationPosition = 0;
 		}
-
-		//save properties
-		this.spritemapAnimation = array;
-		this._spritemapAnimationFrame = array[0];
-		this._spritemapAnimationPosition = 0;
 	}
 }

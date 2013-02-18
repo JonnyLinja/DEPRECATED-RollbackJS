@@ -12,22 +12,15 @@ shooter.entities.bullet = {
 			shooter.components.velocity,					{ speed:10 },
 			shooter.components.removeOffscreen,				{ },
 			shooter.components.explodesOnCollision,			{ types:[shooter.entities.human, shooter.entities.alien] },
-			rollbackgameengine.components.spritemap,		{ source:"images/airball.png"}
+			rollbackgameengine.components.spritemap,		{ source:"images/airball.png", animations:[{ id:"spin", frames:[0, 1, 2], loop:true }] }
 		];
 	},
 
 	//sync
 	sync : rollbackgameengine.sync.sometimes,
 
-	//animations
-	animations : {
-		spin : [
-			0, 1, 2, 3, 4
-		]
-	},
-
 	//added to world
 	addedToWorld : function(entity) {
-		entity.animateSpritemap(this.animations.spin, true);
+		entity.animateSpritemap("spin");
 	}
 };
