@@ -22,6 +22,9 @@ rollbackgameengine.components.spritemap = {
 			//rewrite id
 			a.id = i;
 		}
+
+		//store id bitsize
+		type._spritemapAnimationBitSize = rollbackgameengine.networking.calculateUnsignedIntegerBitSize(options.animations.length);
 	},
 
 	loadEntity : function(entity, options) {
@@ -41,6 +44,27 @@ rollbackgameengine.components.spritemap = {
 		if(entity._spritemapAnimation && entity._spritemapAnimationPosition >= 0) {
 			//increment array position
 			entity._spritemapAnimationPosition++;
+
+			//rate
+			var rate = entity._spritemapAnimation.rate;
+			if(!rate) {
+				rate = 1;
+			}
+
+			//get normalized position
+			var position = ~~(entity._spritemapAnimationPosition / rate);
+
+			//max check
+			if(position >= entity._spritemapAnimation.frames.length) {
+				//maxed
+				if(entity._spritemapAnimation.loop) {
+					//set to beginning
+					entity._spritemapAnimationPosition = 0;
+				}else {
+					//end animation
+					entity._spritemapAnimationPosition = -1;
+				}
+			}
 		}
 	},
 
@@ -67,32 +91,15 @@ rollbackgameengine.components.spritemap = {
 			rate = 1;
 		}
 
-		//define frame
-		var frame = null;
-
 		//get normalized position
-		var position = Math.floor(entity._spritemapAnimationPosition / rate);
-
-		//max check
-		if(position >= entity._spritemapAnimation.frames.length) {
-			//maxed
-			if(entity._spritemapAnimation.loop) {
-				//set to beginning
-				entity._spritemapAnimationPosition = 0;
-				frame = entity._spritemapAnimation.frames[0];
-			}else {
-				//end animation
-				entity._spritemapAnimationPosition = -1;
-				frame = entity._spritemapAnimation.frames[0];
-			}
-		}else {
-			//not maxed
-			frame = entity._spritemapAnimation.frames[position];
+		var position = ~~(entity._spritemapAnimationPosition / rate);
+		if(position < 0) {
+			position = entity._spritemapAnimation.frames.length-1;
 		}
 
 		//calculate offsets
 		var columns = Math.floor(entity.image.width / entity.width);
-		var offsetX = frame;
+		var offsetX = entity._spritemapAnimation.frames[position];
 		var offsetY = 0;
 		while(offsetX >= columns) {
 			offsetX -= columns;
@@ -115,6 +122,64 @@ rollbackgameengine.components.spritemap = {
 		//reset
 		entity._spritemapAnimation = null;
 		entity._spritemapAnimationPosition = 0;
+	},
+
+	encode : function(entity, outgoingMessage) {
+		//id
+		var id = 0;
+		if(entity._spritemapAnimation) {
+			id = entity._spritemapAnimation.id+1;
+		}
+		outgoingMessage.addUnsignedInteger(id, entity.type._spritemapAnimationBitSize);
+
+		//position
+		if(id > 0) {
+			//rate
+			var rate = 1;
+			if(entity._spritemapAnimation.rate) {
+				rate = entity._spritemapAnimation.rate;
+			}
+
+			//bitsize
+			var bitSize = rollbackgameengine.networking.calculateUnsignedIntegerBitSize(entity._spritemapAnimation.frames.length * rate);
+
+			//add
+			outgoingMessage.addUnsignedInteger(entity._spritemapAnimationPosition+1, bitSize);
+		}
+	},
+
+	decode : function(entity, incomingMessage) {
+		//get id
+		var id = incomingMessage.nextUnsignedInteger(entity.type._spritemapAnimationBitSize)-1;
+
+		//set spritemap animation
+		if(id < 0) {
+			//no animation
+			entity._spritemapAnimation = null;
+			entity._spritemapAnimationPosition = 0;
+		}else {
+			//animation
+
+			//set animation
+			for(var anim in entity.type._spritemapAnimations) {
+				if(entity.type._spritemapAnimations[anim].id === id) {
+					entity._spritemapAnimation = entity.type._spritemapAnimations[anim];
+					break;
+				}
+			}
+
+			//rate
+			var rate = 1;
+			if(entity._spritemapAnimation.rate) {
+				rate = entity._spritemapAnimation.rate;
+			}
+
+			//bitsize
+			var bitSize = rollbackgameengine.networking.calculateUnsignedIntegerBitSize(entity._spritemapAnimation.frames.length * rate);
+
+			//set position
+			entity._spritemapAnimationPosition = incomingMessage.nextUnsignedInteger(bitSize)-1;
+		}
 	},
 
 	//this refers to entity

@@ -1286,20 +1286,34 @@ rollbackgameengine.components.collision = {
 //==================================================//
 
 rollbackgameengine.components.spritemap = {
+	loadType : function(type, options) {
+		//create animation
+		type._spritemapAnimations = {};
+
+		//add to animations
+		var a = null;
+		for(var i=0, j=options.animations.length; i<j; i++) {
+			//get animation
+			a = options.animations[i];
+
+			//store it
+			type._spritemapAnimations[a.id] = a;
+
+			//rewrite id
+			a.id = i;
+		}
+
+		//store id bitsize
+		type._spritemapAnimationBitSize = rollbackgameengine.networking.calculateUnsignedIntegerBitSize(options.animations.length);
+	},
+
 	loadEntity : function(entity, options) {
 		//save url
 		entity.imagesrc = options.source;
 
-		//values
-		entity._spritemapAnimationFrame = 0;
-		entity.spritemapAnimation = null;
-		entity.spritemapAnimationIsLooping = false;
-		entity.spritemapAnimationRate = 1;
+		//set up variables
+		entity._spritemapAnimation = null;
 		entity._spritemapAnimationPosition = 0;
-
-		//getters and setters
-		entity.__defineGetter__("spritemapAnimationFrame",  this._getSpritemapAnimationFrame);
-		entity.__defineSetter__("spritemapAnimationFrame",  this._setSpritemapAnimationFrame);
 
 		//animate function
 		entity.animateSpritemap = this._animateSpritemap;
@@ -1307,33 +1321,30 @@ rollbackgameengine.components.spritemap = {
 
 	update : function(entity) {
 		//animate
-		if(entity.spritemapAnimation && entity._spritemapAnimationPosition >= 0) {
+		if(entity._spritemapAnimation && entity._spritemapAnimationPosition >= 0) {
 			//increment array position
 			entity._spritemapAnimationPosition++;
 
-			//rate check
-			if(entity._spritemapAnimationPosition % entity.spritemapAnimationRate !== 0) {
-				return;
+			//rate
+			var rate = entity._spritemapAnimation.rate;
+			if(!rate) {
+				rate = 1;
 			}
 
 			//get normalized position
-			var position = Math.floor(entity._spritemapAnimationPosition / entity.spritemapAnimationRate);
+			var position = ~~(entity._spritemapAnimationPosition / rate);
 
 			//max check
-			if(position >= entity.spritemapAnimation.length) {
-				if(entity.spritemapAnimationIsLooping) {
+			if(position >= entity._spritemapAnimation.frames.length) {
+				//maxed
+				if(entity._spritemapAnimation.loop) {
 					//set to beginning
 					entity._spritemapAnimationPosition = 0;
-					position = 0;
 				}else {
 					//end animation
 					entity._spritemapAnimationPosition = -1;
-					return;
 				}
 			}
-
-			//get frame
-			entity._spritemapAnimationFrame = entity.spritemapAnimation[position];
 		}
 	},
 
@@ -1349,9 +1360,26 @@ rollbackgameengine.components.spritemap = {
 			return;
 		}
 
+		//determine there is an animation
+		if(!entity._spritemapAnimation) {
+			return;
+		}
+
+		//rate
+		var rate = entity._spritemapAnimation.rate;
+		if(!rate) {
+			rate = 1;
+		}
+
+		//get normalized position
+		var position = ~~(entity._spritemapAnimationPosition / rate);
+		if(position < 0) {
+			position = entity._spritemapAnimation.frames.length-1;
+		}
+
 		//calculate offsets
 		var columns = Math.floor(entity.image.width / entity.width);
-		var offsetX = entity._spritemapAnimationFrame;
+		var offsetX = entity._spritemapAnimation.frames[position];
 		var offsetY = 0;
 		while(offsetX >= columns) {
 			offsetX -= columns;
@@ -1366,70 +1394,87 @@ rollbackgameengine.components.spritemap = {
 	rollback : function(entity1, entity2) {
 		//rollback values
 		entity1.imagesrc = entity2.imagesrc;
-		entity1._spritemapAnimationFrame = entity2._spritemapAnimationFrame;
-		entity1.spritemapAnimation = entity2.spritemapAnimation;
-		entity1.spritemapAnimationIsLooping = entity2.spritemapAnimationIsLooping;
+		entity1._spritemapAnimation = entity2._spritemapAnimation;
 		entity1._spritemapAnimationPosition = entity2._spritemapAnimationPosition;
-		entity1.spritemapAnimationRate = entity2.spritemapAnimationRate;
 	},
 
 	removedFromWorld : function(entity) {
 		//reset
-		entity._spritemapAnimationFrame = 0;
-		entity.spritemapAnimation = null;
-		entity.spritemapAnimationIsLooping = false;
-		entity.spritemapAnimationRate = 1;
+		entity._spritemapAnimation = null;
 		entity._spritemapAnimationPosition = 0;
 	},
 
-	//this refers to entity
-	_getSpritemapAnimationFrame : function() {
-		return this._spritemapAnimationFrame;
-	},
-
-	//this refers to entity
-	_setSpritemapAnimationFrame : function(f) {
-		//save frame
-		this._spritemapAnimationFrame = f;
-
-		//stop animations
-		this._spritemapAnimationPosition = -1;
-	},
-
-	//this refers to entity
-	_animateSpritemap : function(array, loop, rate) {
-		//default loop
-		if(typeof loop === 'undefined') {
-			loop = false;
+	encode : function(entity, outgoingMessage) {
+		//id
+		var id = 0;
+		if(entity._spritemapAnimation) {
+			id = entity._spritemapAnimation.id+1;
 		}
+		outgoingMessage.addUnsignedInteger(id, entity.type._spritemapAnimationBitSize);
 
-		//default rate
-		if(typeof rate === 'undefined' || rate < 1) {
-			rate = 1;
-		}
-
-		//save loop
-		this.spritemapAnimationIsLooping = loop;
-
-		//save rate
-		this.spritemapAnimationRate = rate;
-
-		//detect already animating
-		if(this.spritemapAnimation === array) {
-			//start a stopped animation
-			if(this._spritemapAnimationPosition < 0) {
-				this._spritemapAnimationPosition = 0;
-				this._spritemapAnimationFrame = array[0];
+		//position
+		if(id > 0) {
+			//rate
+			var rate = 1;
+			if(entity._spritemapAnimation.rate) {
+				rate = entity._spritemapAnimation.rate;
 			}
 
-			//return
-			return;
-		}
+			//bitsize
+			var bitSize = rollbackgameengine.networking.calculateUnsignedIntegerBitSize(entity._spritemapAnimation.frames.length * rate);
 
-		//save properties
-		this.spritemapAnimation = array;
-		this._spritemapAnimationFrame = array[0];
-		this._spritemapAnimationPosition = 0;
+			//add
+			outgoingMessage.addUnsignedInteger(entity._spritemapAnimationPosition+1, bitSize);
+		}
+	},
+
+	decode : function(entity, incomingMessage) {
+		//get id
+		var id = incomingMessage.nextUnsignedInteger(entity.type._spritemapAnimationBitSize)-1;
+
+		//set spritemap animation
+		if(id < 0) {
+			//no animation
+			entity._spritemapAnimation = null;
+			entity._spritemapAnimationPosition = 0;
+		}else {
+			//animation
+
+			//set animation
+			for(var anim in entity.type._spritemapAnimations) {
+				if(entity.type._spritemapAnimations[anim].id === id) {
+					entity._spritemapAnimation = entity.type._spritemapAnimations[anim];
+					break;
+				}
+			}
+
+			//rate
+			var rate = 1;
+			if(entity._spritemapAnimation.rate) {
+				rate = entity._spritemapAnimation.rate;
+			}
+
+			//bitsize
+			var bitSize = rollbackgameengine.networking.calculateUnsignedIntegerBitSize(entity._spritemapAnimation.frames.length * rate);
+
+			//set position
+			entity._spritemapAnimationPosition = incomingMessage.nextUnsignedInteger(bitSize)-1;
+		}
+	},
+
+	//this refers to entity
+	_animateSpritemap : function(animationID) {
+		if(this._spritemapAnimation && this._spritemapAnimation === this.type._spritemapAnimations[animationID]) {
+			//already animating it
+			if(this._spritemapAnimationPosition < 0) {
+				//start a stopped animation
+				this._spritemapAnimationPosition = 0;
+			}
+		}else {
+			//new animation
+			this._spritemapAnimation = this.type._spritemapAnimations[animationID];
+			this._spritemapAnimationPosition = 0;
+		}
 	}
 }
 

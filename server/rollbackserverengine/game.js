@@ -131,26 +131,21 @@ shooter.entities.alien = {
 			rollbackgameengine.components.collision,		{ },
 			shooter.components.damagedOnCollision,			{ types:[shooter.entities.bullet] },
 			rollbackgameengine.components.preventOverlap,	{ types:[shooter.entities.human, shooter.entities.wall] },
-			rollbackgameengine.components.spritemap,		{ source:"images/aliengun.png" }
+			rollbackgameengine.components.spritemap,		{ source:"images/aliengun.png", animations:[
+																{ id:"walkdown", frames:[0, 1, 2], rate:3, loop:true },
+																{ id:"facedown", frames:[1], loop:false },
+																{ id:"walkright", frames:[3, 4, 5], rate:3, loop:true},
+																{ id:"faceright", frames:[4], loop:false },
+																{ id:"walkleft", frames:[6, 7, 8], rate:3, loop: true },
+																{ id:"faceleft", frames:[7], loop:false },
+																{ id:"walkup", frames:[9, 10, 11], rate:3, loop:true },
+																{ id:"faceup", frames:[10], loop:false }
+															] }
 		];
 	},
 
 	//sync
 	sync : rollbackgameengine.sync.singleton
-
-	/*,
-
-	//animations
-	animations : {
-		walkdown	:	{ frames:[0, 1, 2],		loop:true		rate:3	},
-		facedown	:	{ frames:[1],			loop:false		rate:1	},
-		walkright	:	{ frames:[3, 4, 5],		loop:true		rate:3	},
-		faceright	:	{ frames:[4],			loop:false		rate:1	},
-		walkleft	:	{ frames:[6, 7, 8],		loop:true		rate:3	},
-		faceleft	:	{ frames:[7],			loop:false		rate:1	},
-		walkup		:	{ frames:[9, 10, 11],	loop:true		rate:3	},
-		faceup 		:	{ frames:[10],			loop:false		rate:1	}
-	}*/
 };
 
 //==================================================//
@@ -165,37 +160,21 @@ shooter.entities.human = {
 			rollbackgameengine.components.collision,		{ },
 			shooter.components.damagedOnCollision,			{ types:[shooter.entities.bullet] },
 			rollbackgameengine.components.preventOverlap,	{ types:[shooter.entities.alien, shooter.entities.wall] },
-			rollbackgameengine.components.spritemap,		{ source:"images/humangun.png" }
+			rollbackgameengine.components.spritemap,		{ source:"images/humangun.png", animations:[
+																{ id:"walkdown", frames:[0, 1, 2], rate:3, loop:true },
+																{ id:"facedown", frames:[1], loop:false },
+																{ id:"walkright", frames:[3, 4, 5], rate:3, loop:true},
+																{ id:"faceright", frames:[4], loop:false },
+																{ id:"walkleft", frames:[6, 7, 8], rate:3, loop: true },
+																{ id:"faceleft", frames:[7], loop:false },
+																{ id:"walkup", frames:[9, 10, 11], rate:3, loop:true },
+																{ id:"faceup", frames:[10], loop:false }
+															] }
 		];
 	},
 
 	//sync
-	sync : rollbackgameengine.sync.singleton,
-
-	//animations
-	animations : {
-		walkdown : [0, 1, 2],
-		facedown : 1,
-		walkright : [3, 4, 5],
-		faceright : 4,
-		walkleft : [6, 7, 8],
-		faceleft : 7,
-		walkup : [9, 10, 11],
-		faceup : 10
-	}
-	/*
-	//animations
-	animations : {
-		walkdown	:	{ frames:[0, 1, 2],		loop:true		rate:3	},
-		facedown	:	{ frames:[1],			loop:false		rate:1	},
-		walkright	:	{ frames:[3, 4, 5],		loop:true		rate:3	},
-		faceright	:	{ frames:[4],			loop:false		rate:1	},
-		walkleft	:	{ frames:[6, 7, 8],		loop:true		rate:3	},
-		faceleft	:	{ frames:[7],			loop:false		rate:1	},
-		walkup		:	{ frames:[9, 10, 11],	loop:true		rate:3	},
-		faceup 		:	{ frames:[10],			loop:false		rate:1	}
-	}
-	*/
+	sync : rollbackgameengine.sync.singleton
 };
 
 //==================================================//
@@ -211,23 +190,16 @@ shooter.entities.bullet = {
 			shooter.components.velocity,					{ speed:10 },
 			shooter.components.removeOffscreen,				{ },
 			shooter.components.explodesOnCollision,			{ types:[shooter.entities.human, shooter.entities.alien] },
-			rollbackgameengine.components.spritemap,		{ source:"images/airball.png"}
+			rollbackgameengine.components.spritemap,		{ source:"images/airball.png", animations:[{ id:"spin", frames:[0, 1, 2], loop:true }] }
 		];
 	},
 
 	//sync
 	sync : rollbackgameengine.sync.sometimes,
 
-	//animations
-	animations : {
-		spin : [
-			0, 1, 2, 3, 4
-		]
-	},
-
 	//added to world
 	addedToWorld : function(entity) {
-		entity.animateSpritemap(this.animations.spin, true);
+		entity.animateSpritemap("spin");
 	}
 };
 
@@ -240,7 +212,7 @@ shooter.entities.explosion = {
 	components : function() {
 		return [
 			rollbackgameengine.components.frame,			{ x:0, y:0, width:79, height:85 },
-			rollbackgameengine.components.spritemap,		{ source:"images/blood.png" },
+			rollbackgameengine.components.spritemap,		{ source:"images/blood.png", animations:[{ id:"explode", frames:[0, 1, 2], rate:3, loop:false }] },
 			rollbackgameengine.components.removedAfter,		{ frames:9 }
 		];
 	},
@@ -248,16 +220,9 @@ shooter.entities.explosion = {
 	//sync
 	sync : rollbackgameengine.sync.sometimes,
 
-	//animations
-	animations : {
-		explode : [
-			0, 1, 2
-		]
-	},
-
 	//added to world
 	addedToWorld : function(entity) {
-		entity.animateSpritemap(this.animations.explode, false, 3);
+		entity.animateSpritemap("explode");
 	}
 };
 
@@ -528,30 +493,30 @@ shooter.commands.CommandProcessor.prototype.update = function(command) {
 	if(angle > 315 || angle <= 45) {
 		//left
 		if(isMoving) {
-			this.player.animateSpritemap(shooter.entities.human.animations.walkleft, true, 3);
+			this.player.animateSpritemap("walkleft");
 		}else {
-			this.player.spritemapAnimationFrame = shooter.entities.human.animations.faceleft;
+			this.player.animateSpritemap("faceleft");
 		}
 	}else if(angle <= 135) {
 		//top
 		if(isMoving) {
-			this.player.animateSpritemap(shooter.entities.human.animations.walkup, true, 3);
+			this.player.animateSpritemap("walkup");
 		}else {
-			this.player.spritemapAnimationFrame = shooter.entities.human.animations.faceup;
+			this.player.animateSpritemap("faceup");
 		}
 	}else if(angle <= 225) {
 		//right
 		if(isMoving) {
-			this.player.animateSpritemap(shooter.entities.human.animations.walkright, true, 3);
+			this.player.animateSpritemap("walkright");
 		}else {
-			this.player.spritemapAnimationFrame = shooter.entities.human.animations.faceright;
+			this.player.animateSpritemap("faceright");
 		}
 	}else {
 		//bottom
 		if(isMoving) {
-			this.player.animateSpritemap(shooter.entities.human.animations.walkdown, true, 3);
+			this.player.animateSpritemap("walkdown");
 		}else {
-			this.player.spritemapAnimationFrame = shooter.entities.human.animations.facedown;
+			this.player.animateSpritemap("facedown");
 		}
 	}
 
@@ -560,63 +525,46 @@ shooter.commands.CommandProcessor.prototype.update = function(command) {
 	if(angle >= 337 || angle <= 23) {
 		//left
 		if(isMoving) {
-			this.player.animateSpritemap(shooter.entities.human.animations.walkleft, true, 3);
 		}else {
-			this.player.spritemapAnimationFrame = shooter.entities.human.animations.faceleft;
 		}
 	}else if(angle < 67) {
 		//top left
 		if(isMoving) {
-			this.player.animateSpritemap(shooter.entities.human.animations.walkup, true, 3);
 		}else {
-			this.player.spritemapAnimationFrame = shooter.entities.human.animations.faceup;
 		}
 	}else if(angle <= 113) {
 		//top
 		if(isMoving) {
-			this.player.animateSpritemap(shooter.entities.human.animations.walkup, true, 3);
 		}else {
-			this.player.spritemapAnimationFrame = shooter.entities.human.animations.faceup;
 		}
 	}else if(angle < 157) {
 		//top right
 		if(isMoving) {
-			this.player.animateSpritemap(shooter.entities.human.animations.walkup, true, 3);
 		}else {
-			this.player.spritemapAnimationFrame = shooter.entities.human.animations.faceup;
 		}
 	}else if(angle <= 203) {
 		//right
 		if(isMoving) {
-			this.player.animateSpritemap(shooter.entities.human.animations.walkright, true, 3);
 		}else {
-			this.player.spritemapAnimationFrame = shooter.entities.human.animations.faceright;
 		}
 	}else if(angle < 247) {
 		//bottom right
 		if(isMoving) {
-			this.player.animateSpritemap(shooter.entities.human.animations.walkdown, true, 3);
 		}else {
-			this.player.spritemapAnimationFrame = shooter.entities.human.animations.facedown;
 		}
 	}else if(angle <= 293) {
 		//bottom
 		if(isMoving) {
-			this.player.animateSpritemap(shooter.entities.human.animations.walkdown, true, 3);
 		}else {
-			this.player.spritemapAnimationFrame = shooter.entities.human.animations.facedown;
 		}
 	}else if(angle < 337) {
 		//bottom left
 		if(isMoving) {
-			this.player.animateSpritemap(shooter.entities.human.animations.walkdown, true, 3);
 		}else {
-			this.player.spritemapAnimationFrame = shooter.entities.human.animations.facedown;
 		}
 	}else {
 		//error
 		console.log("ERRAR");
-		//this.player.spritemapAnimationFrame = shooter.entities.human.animations.facedown;
 	}
 	*/
 };
