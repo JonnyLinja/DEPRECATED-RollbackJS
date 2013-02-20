@@ -31,7 +31,7 @@
 
 //eventually pass canvas in here - needed to obtain width and height to determine max sync value
 //frame delay must be between 0 and 127 inclusive
-//url, Simulation, Command, frameRate, frameDelay, playerCount, minimumUpdateFrame
+//url, Simulation, Command, frameRate, frameDelay, playerCount, minimumUpdateFrame, frameSkipBitSize
 rollbackclientengine.controllers.PlayController = function(options) {
 	//debug logging
 	this.logsDisabled = true; //false
@@ -58,6 +58,11 @@ rollbackclientengine.controllers.PlayController = function(options) {
 	//minimum update frame default
 	if(typeof options.minimumUpdateFrame === 'undefined') {
 		options.minimumUpdateFrame = 1;
+	}
+
+	//frameSkipBitSize
+	if(options.frameSkipBitSize && options.frameSkipBitSize !== rollbackgameengine.networking.variableLengthEncodeBitSize) {
+		this.frameSkipBitSize = options.frameSkipBitSize;
 	}
 
 	//commands
@@ -129,7 +134,12 @@ rollbackclientengine.controllers.PlayController = function(options) {
 	}
 
 	//byte size - used to acquire outgoing message from pool or create it
-	this.outgoingByteSize = this.outgoingCommand.totalBitSize;
+	this.outgoingByteSize = this.outgoingCommand.totalBitSize + 1;
+	if(this.frameSkipBitSize) {
+		this.outgoingByteSize += this.frameSkipBitSize;
+	}else {
+		this.outgoingByteSize += rollbackgameengine.networking.variableLengthEncodeBitSize;
+	}
 	this.outgoingByteSize /= 8;
 	this.outgoingByteSize = Math.ceil(this.outgoingByteSize);
 
@@ -402,22 +412,20 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
 
 	//declare variables
 	var message = null;
+	var skipped = this.frameDifference-1;
+	var frameBitSize = rollbackgameengine.networking.calculateUnsignedIntegerBitSize(skipped);
 
-	//get message
-	if(this.frameDifference > 1) {
-		//send with frame
-
-		//calculate bit size
-		var frameBitSize = rollbackgameengine.networking.calculateUnsignedIntegerBitSize(this.frameDifference-1);
+	if(!this.frameSkipBitSize || frameBitSize > this.frameSkipBitSize) {
+		//variable length
 
 		//calculate byte size
-		var byteSize = this.outgoingCommand.totalBitSize + frameBitSize;
+		var byteSize = this.outgoingCommand.totalBitSize + 1 + rollbackgameengine.networking.calculateVariableLengthUnsignedIntegerBitSize(skipped);
 		byteSize /= 8;
 		byteSize = Math.ceil(byteSize);
 
 		//debug logging
 		if(!this.logsDisabled) {
-			console.log("SKIPPED WITH FRAME DIFF " + this.frameDifference + " AND FRAME BIT SIZE " + frameBitSize + " AND TOTAL BYTE SIZE " + byteSize);
+			console.log("VARIABLE SKIPPED WITH FRAME DIFF " + this.frameDifference + " AND FRAME BIT SIZE " + frameBitSize + " AND TOTAL BYTE SIZE " + byteSize);
 		}
 
 		//get message
@@ -425,18 +433,33 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
 		if(!message) {
 			message = new rollbackgameengine.networking.OutgoingMessage(byteSize);
 		}
+		message.reset();
+
+		//frame data
+		if(this.frameSkipBitSize) {
+			message.addBoolean(false);
+		}
+		message.addUnsignedInteger(skipped);
 	}else {
-		//do not send frame
+		//preset length
+
+		//debug logging
+		if(!this.logsDisabled) {
+			console.log("PRESET SKIPPED WITH FRAME DIFF " + this.frameDifference + " AND FRAME BIT SIZE " + frameBitSize);
+		}
 
 		//get message
 		message = rollbackgameengine.pool.acquire("msg"+this.outgoingByteSize);
 		if(!message) {
 			message = new rollbackgameengine.networking.OutgoingMessage(this.outgoingByteSize);
 		}
-	}
+		message.reset();
 
-	//reset
-	message.reset();
+		//frame data
+		message.addBoolean(true);
+		message.addUnsignedInteger(skipped, this.frameSkipBitSize);
+		console.log(message.byteSize + " " + message.array[0]);
+	}
 
 	//create command
 	var c = this._getNewCommand();
@@ -489,15 +512,6 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
 
 	//append command data to message
 	c.addDataToMessage(message);
-
-	//add frame to message
-	if(this.frameDifference > 1) {
-		message.addFinalUnsignedInteger(this.frameDifference-1);
-		//debug log
-		if(!this.logsDisabled) {
-			console.log("Adding final unsigned integer " + (this.frameDifference-1));
-		}
-	}
 
 	//send message
 	this.connection.send(message);
@@ -701,6 +715,19 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
 			incomingMessage.nextUnsignedInteger(this.sendPlayerBitSize);
 		}
 
+		//get frame
+		var receivedFrameDifference = null;
+		if(!this.frameSkipBitSize) {
+			//variable length
+			receivedFrameDifference = incomingMessage.nextUnsignedInteger()+1;
+		}else if(incomingMessage.nextBoolean()) {
+			//preset length
+			receivedFrameDifference = incomingMessage.nextUnsignedInteger(this.frameSkipBitSize)+1;
+		}else {
+			//variable length
+			receivedFrameDifference = incomingMessage.nextUnsignedInteger()+1;
+		}
+
 		//get command
 		var c = this._getNewCommand();
 
@@ -720,9 +747,6 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
 				player = 0;
 			}
 		}
-
-		//get frame
-		var receivedFrameDifference = incomingMessage.finalUnsignedInteger()+1;
 
 		//debug
 		if(!this.logsDisabled) {
@@ -777,6 +801,8 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
 		}
 	}else {
 		//sync command
+
+		console.log("SYNC");
 		
 		//temp just update true
 		this.trueSimulation.decode(incomingMessage);
