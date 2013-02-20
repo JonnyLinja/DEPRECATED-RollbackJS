@@ -190,12 +190,17 @@ rollbackgameengine.networking.calculateUnsignedIntegerBitSize = function(num) {
 	//return
 	return frameBitSize;
 };
-rollbackgameengine.networking.calculateVariableLengthUnsignedIntegerBitSize = function(num) {
+rollbackgameengine.networking.calculateVariableLengthUnsignedIntegerBitSize = function(num, encodeSize) {
 	//initial bit size
 	var bitSize = rollbackgameengine.networking.calculateUnsignedIntegerBitSize(num);
+
+	//encodeSize
+	if(encodeSize === 'undefined') {
+		encodeSize = rollbackgameengine.networking.variableLengthEncodeBitSize;
+	}
 	
 	//return calculated
-	return Math.ceil(bitSize/rollbackgameengine.networking.variableLengthEncodeBitSize) * (rollbackgameengine.networking.variableLengthEncodeBitSize+1);
+	return Math.ceil(bitSize/encodeSize) * (encodeSize+1);
 };
 
 //==================================================//
@@ -657,7 +662,13 @@ rollbackgameengine.networking.VariableMessage.prototype.constructMessage = funct
 				message.addSignedInteger(current.value, current.size);
 			}else {
 				//unsigned
-				message.addUnsignedInteger(current.value, current.size);
+				if(!current.isFinal) {
+					//integer
+					message.addUnsignedInteger(current.value, current.size);
+				}else {
+					//final
+					message.addFinalUnsignedInteger(current.value);
+				}
 			}
 		}else {
 			//number
@@ -701,7 +712,8 @@ rollbackgameengine.networking.VariableMessage.prototype.addUnsignedInteger = fun
 		isInteger:true,
 		isSigned:false,
 		value:int,
-		size:size
+		size:size,
+		isFinal:false
 	});
 };
 
@@ -810,7 +822,16 @@ rollbackgameengine.networking.VariableMessage.prototype.addSignedNumber = functi
 };
 
 rollbackgameengine.networking.VariableMessage.prototype.addFinalUnsignedInteger = function(int) {
-	//todo
+	//bitsize
+	this.bitSize += rollbackgameengine.networking.calculateUnsignedIntegerBitSize(int);
+
+	//push
+	this.inputs.add({
+		isInteger:true,
+		isSigned:false,
+		value:int,
+		isFinal:true
+	});
 };
 
 //==================================================//
