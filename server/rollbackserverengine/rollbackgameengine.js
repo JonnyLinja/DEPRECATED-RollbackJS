@@ -195,7 +195,7 @@ rollbackgameengine.networking.calculateVariableLengthUnsignedIntegerBitSize = fu
 	var bitSize = rollbackgameengine.networking.calculateUnsignedIntegerBitSize(num);
 
 	//encodeSize
-	if(encodeSize === 'undefined') {
+	if(typeof encodeSize === 'undefined') {
 		encodeSize = rollbackgameengine.networking.variableLengthEncodeBitSize;
 	}
 	

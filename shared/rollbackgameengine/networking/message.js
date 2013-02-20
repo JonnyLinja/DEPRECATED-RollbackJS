@@ -35,10 +35,15 @@ rollbackgameengine.networking.calculateUnsignedIntegerBitSize = function(num) {
 	//return
 	return frameBitSize;
 };
-rollbackgameengine.networking.calculateVariableLengthUnsignedIntegerBitSize = function(num) {
+rollbackgameengine.networking.calculateVariableLengthUnsignedIntegerBitSize = function(num, encodeSize) {
 	//initial bit size
 	var bitSize = rollbackgameengine.networking.calculateUnsignedIntegerBitSize(num);
+
+	//encodeSize
+	if(typeof encodeSize === 'undefined') {
+		encodeSize = rollbackgameengine.networking.variableLengthEncodeBitSize;
+	}
 	
 	//return calculated
-	return Math.ceil(bitSize/rollbackgameengine.networking.variableLengthEncodeBitSize) * (rollbackgameengine.networking.variableLengthEncodeBitSize+1);
+	return Math.ceil(bitSize/encodeSize) * (encodeSize+1);
 };
