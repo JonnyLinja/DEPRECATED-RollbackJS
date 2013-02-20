@@ -458,7 +458,6 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
 		//frame data
 		message.addBoolean(true);
 		message.addUnsignedInteger(skipped, this.frameSkipBitSize);
-		console.log(message.byteSize + " " + message.array[0]);
 	}
 
 	//create command
