@@ -29,6 +29,23 @@ var CommandObject = game.commands.Command; //hardcoded, should be passed in
 var SimulationObject = game.GameSimulation; //hardcoded, should be passed in
 var frameSkipBitSize = 4; //hardcoded, should be passed in
 var syncFrameRate = 30; //hardcoded, should be passed in
+var syncCalc = new rollbackgameengine.sync.SyncCalculator();
+
+function updateSimulation() {
+	//valid check
+	if(Math.min(lastP1, lastP2) <= sim.frame) {
+		return;
+	}
+
+	//update
+	sim.update();
+
+	//check rate
+	if(sim.frame % syncFrameRate === 0) {
+		sim.world.encode(syncCalc); //ugly, shouldn't have to access world
+		console.log(syncCalc.calculateSyncValue());
+	}
+}
 
 function handleCommand(player, incomingMessage) {
 	//skipped
@@ -67,15 +84,10 @@ function handleCommand(player, incomingMessage) {
 	}
 
 	//update
-	if(Math.min(lastP1, lastP2) > sim.frame) {
-		//at least one
-		sim.update();
-	}
+	updateSimulation(); //at least once
 	for(var i=0; i<skipped; i++) {
 		//skipped
-		if(Math.min(lastP1, lastP2) > sim.frame) {
-			sim.update();
-		}
+		updateSimulation();
 	}
 
 	if(false) {
