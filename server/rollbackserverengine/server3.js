@@ -2,20 +2,33 @@
 //todo - make this export something that is passed in the simulation and the command object
 //for testing purposes everything is hardcoded in atm
 
+//imports
 var rollbackgameengine = require ("./rollbackgameengine");
-var game = require("./game.js");
+var game = require("./game.js"); //temporary, remove later
 var WebSocketServer = require('ws').Server;
+
+//server
 var wss = new WebSocketServer({port: 8080});
+
+//player
 var p1 = null;
 var p2 = null;
+
+//player delay
 var p1Delay = null;
 var p2Delay = null;
-var started = false;
-var sim = null;
+
+//last player frames
 var lastP1 = null;
 var lastP2 = null;
-var frameSkipBitSize = 4;
-var syncFrameRate = 30;
+
+//game variables
+var started = false;
+var sim = null;
+var CommandObject = game.commands.Command; //hardcoded, should be passed in
+var SimulationObject = game.GameSimulation; //hardcoded, should be passed in
+var frameSkipBitSize = 4; //hardcoded, should be passed in
+var syncFrameRate = 30; //hardcoded, should be passed in
 
 function handleCommand(player, incomingMessage) {
 	//skipped
@@ -43,7 +56,7 @@ function handleCommand(player, incomingMessage) {
 	}
 
 	//command
-	var c = new game.commands.Command();
+	var c = new CommandObject();
 	c.loadFromMessage(incomingMessage);
 
 	//execute
@@ -169,7 +182,7 @@ wss.on('connection', function(ws) {
 			started = true;
 
 			//create new sim
-			sim = new game.GameSimulation();
+			sim = new SimulationObject();
 
 			//set last
 			lastP1 = 0;
