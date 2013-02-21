@@ -28,8 +28,12 @@ var sim = null;
 var CommandObject = game.commands.Command; //hardcoded, should be passed in
 var SimulationObject = game.GameSimulation; //hardcoded, should be passed in
 var frameSkipBitSize = 4; //hardcoded, should be passed in
+
+//sync variables
 var syncFrameRate = 30; //hardcoded, should be passed in
 var syncCalc = new rollbackgameengine.sync.SyncCalculator();
+var syncCheckP1 = null;
+var syncCheckP2 = null;
 
 function updateSimulation() {
 	//valid check
@@ -43,7 +47,9 @@ function updateSimulation() {
 	//check rate
 	if(sim.frame % syncFrameRate === 0) {
 		sim.world.encode(syncCalc); //ugly, shouldn't have to access world
-		console.log(syncCalc.calculateSyncValue());
+		var value = syncCalc.calculateSyncValue();
+		console.log(sim.frame + ": " + value);
+		return value;
 	}
 }
 
@@ -84,10 +90,13 @@ function handleCommand(player, incomingMessage) {
 	}
 
 	//update
-	updateSimulation(); //at least once
-	for(var i=0; i<skipped; i++) {
-		//skipped
-		updateSimulation();
+	var syncValue = null;
+	var temp = null;
+	for(var i=0; i<=skipped; i++) {
+		temp = updateSimulation();
+		if(temp) {
+			syncValue = temp;
+		}
 	}
 
 	if(false) {
@@ -112,13 +121,28 @@ function handleCommand(player, incomingMessage) {
 		//bounce
 
 		//calculate size
-		var byteSize = Math.ceil((c.totalBitSize+1+rollbackgameengine.networking.calculateUnsignedIntegerBitSize(skipped))/8);
+		var byteSize = Math.ceil((c.totalBitSize+1+1+rollbackgameengine.networking.calculateUnsignedIntegerBitSize(skipped))/8);
 
 		//create message
 		var outgoingMessage = new rollbackgameengine.networking.OutgoingMessage(byteSize);
 
 		//message type
 		outgoingMessage.addBoolean(false); //not a sync message
+
+		//request sync
+		if(syncValue) {
+			outgoingMessage.addBoolean(true);
+		}else if(player === p2 && syncCheckP1) {
+			outgoingMessage.addBoolean(true);
+			syncCheckP1 = null;
+			console.log("saved request p1 sync");
+		}else if(player === p1 && syncCheckP2) {
+			outgoingMessage.addBoolean(true);
+			syncCheckP2 = null;
+			console.log("saved request p2 sync");
+		}else {
+			outgoingMessage.addBoolean(false);
+		}
 
 		//add skipped
 		if(skippedPreset) {
@@ -136,8 +160,16 @@ function handleCommand(player, incomingMessage) {
 
 		//send
 		if(player === p1) {
+			if(syncValue) {
+				syncCheckP1 = syncValue;
+				console.log("request p2 sync");
+			}
 			p2.send(outgoingMessage.array, {binary:true, mask:false});
 		}else {
+			if(syncValue) {
+				syncCheckP2 = syncValue;
+				console.log("request p1 sync");
+			}
 			p1.send(outgoingMessage.array, {binary:true, mask:false});
 		}
 	}

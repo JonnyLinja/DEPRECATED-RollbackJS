@@ -704,14 +704,16 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
 	}else if(!incomingMessage.nextBoolean()) {
 		//game command
 
-		//todo - message type - differentiate command and dump
-
-		var player = null;
-
 		//player
+		var player = null;
 		if(this.shouldSendPlayer) {
 			//todo - store and use it
 			incomingMessage.nextUnsignedInteger(this.sendPlayerBitSize);
+		}
+
+		//get sync request
+		if(incomingMessage.nextBoolean()) {
+			console.log("sync requested!");
 		}
 
 		//get frame
