@@ -15,6 +15,108 @@ var sim = null;
 var lastP1 = null;
 var lastP2 = null;
 var frameSkipBitSize = 4;
+var syncFrameRate = 30;
+
+function handleCommand(player, incomingMessage) {
+	//skipped
+	var skipped = null;
+	var skippedPreset = null;
+	if(!frameSkipBitSize) {
+		//variable length
+		skipped = incomingMessage.nextUnsignedInteger();
+		skippedPreset = false;
+	}else if(incomingMessage.nextBoolean()) {
+		//preset length
+		skipped = incomingMessage.nextUnsignedInteger(frameSkipBitSize);
+		skippedPreset = true;
+	}else {
+		//variable length
+		skipped = incomingMessage.nextUnsignedInteger();
+		skippedPreset = false;
+	}
+
+	//last
+	if(player === p1) {
+		lastP1 += skipped+1;
+	}else {
+		lastP2 += skipped+1;
+	}
+
+	//command
+	var c = new game.commands.Command();
+	c.loadFromMessage(incomingMessage);
+
+	//execute
+	if(player === p1) {
+		sim.execute(0, c);
+	}else {
+		sim.execute(1, c);
+	}
+
+	//update
+	if(Math.min(lastP1, lastP2) > sim.frame) {
+		//at least one
+		sim.update();
+	}
+	for(var i=0; i<skipped; i++) {
+		//skipped
+		if(Math.min(lastP1, lastP2) > sim.frame) {
+			sim.update();
+		}
+	}
+
+	if(false) {
+		//sync
+
+		//create message
+		var outgoingMessage = new rollbackgameengine.networking.VariableMessage();
+
+		//message type
+		outgoingMessage.addBoolean(true); //is a sync message
+
+		//encode
+		sim.encode(outgoingMessage);
+
+		//send
+		if(player === p1) {
+			p2.send(outgoingMessage.constructMessage().array, {binary:true, mask:false});
+		}else {
+			p1.send(outgoingMessage.constructMessage().array, {binary:true, mask:false});
+		}
+	}else {
+		//bounce
+
+		//calculate size
+		var byteSize = Math.ceil((c.totalBitSize+1+rollbackgameengine.networking.calculateUnsignedIntegerBitSize(skipped))/8);
+
+		//create message
+		var outgoingMessage = new rollbackgameengine.networking.OutgoingMessage(byteSize);
+
+		//message type
+		outgoingMessage.addBoolean(false); //not a sync message
+
+		//add skipped
+		if(skippedPreset) {
+			outgoingMessage.addBoolean(true);
+			outgoingMessage.addUnsignedInteger(skipped, frameSkipBitSize);
+		}else {
+			if(frameSkipBitSize) {
+				outgoingMessage.addBoolean(false);
+			}
+			outgoingMessage.addUnsignedInteger(skipped);
+		}
+
+		//add command
+		c.addDataToMessage(outgoingMessage);
+
+		//send
+		if(player === p1) {
+			p2.send(outgoingMessage.array, {binary:true, mask:false});
+		}else {
+			p1.send(outgoingMessage.array, {binary:true, mask:false});
+		}
+	}
+}
 
 wss.on('connection', function(ws) {
 	if(!p1) {
@@ -46,60 +148,8 @@ wss.on('connection', function(ws) {
 
 				console.log("p1 ready with initial delay " + p1Delay);
 			}else if(p2) {
-				//skipped
-				var skipped = null;
-				var skippedPreset = null;
-				if(!frameSkipBitSize) {
-					//variable length
-					skipped = incomingMessage.nextUnsignedInteger();
-					skippedPreset = false;
-				}else if(incomingMessage.nextBoolean()) {
-					//preset length
-					skipped = incomingMessage.nextUnsignedInteger(frameSkipBitSize);
-					skippedPreset = true;
-				}else {
-					//variable length
-					skipped = incomingMessage.nextUnsignedInteger();
-					skippedPreset = false;
-				}
-				lastP1 += skipped+1;
-
-				//command
-				var c = new game.commands.Command();
-				c.loadFromMessage(incomingMessage);
-
-				//update
-				sim.execute(0, c);
-				if(Math.min(lastP1, lastP2) > sim.frame) {
-					sim.update();
-				}
-				for(var i=0; i<skipped; i++) {
-					if(Math.min(lastP1, lastP2) > sim.frame) {
-						sim.update();
-					}
-				}
-
-				//sync
-				//var outgoingMessage = new rollbackgameengine.networking.VariableMessage();
-				//outgoingMessage.addBoolean(true); //is a sync message
-				//sim.encode(outgoingMessage);
-				//p2.send(outgoingMessage.constructMessage().array, {binary:true, mask:false});
-
-				//bounce
-				var byteSize = Math.ceil((c.totalBitSize+1+rollbackgameengine.networking.calculateUnsignedIntegerBitSize(skipped))/8);
-				var outgoingMessage = new rollbackgameengine.networking.OutgoingMessage(byteSize);
-				outgoingMessage.addBoolean(false); //not a sync message
-				if(skippedPreset) {
-					outgoingMessage.addBoolean(true);
-					outgoingMessage.addUnsignedInteger(skipped, frameSkipBitSize);
-				}else {
-					if(frameSkipBitSize) {
-						outgoingMessage.addBoolean(false);
-					}
-					outgoingMessage.addUnsignedInteger(skipped);
-				}
-				c.addDataToMessage(outgoingMessage);
-				p2.send(outgoingMessage.array, {binary:true, mask:false});
+				//handle command
+				handleCommand(ws, incomingMessage);
 			}
 		}else if(p2 && ws === p2) {
 			if(!p2Delay) {
@@ -108,60 +158,8 @@ wss.on('connection', function(ws) {
 
 				console.log("p2 ready with initial delay " + p2Delay);
 			}else if(p1) {
-				//skipped
-				var skipped = null;
-				var skippedPreset = null;
-				if(!frameSkipBitSize) {
-					//variable length
-					skipped = incomingMessage.nextUnsignedInteger();
-					skippedPreset = false;
-				}else if(incomingMessage.nextBoolean()) {
-					//preset length
-					skipped = incomingMessage.nextUnsignedInteger(frameSkipBitSize);
-					skippedPreset = true;
-				}else {
-					//variable length
-					skipped = incomingMessage.nextUnsignedInteger();
-					skippedPreset = false;
-				}
-				lastP2 += skipped+1;
-
-				//command
-				var c = new game.commands.Command();
-				c.loadFromMessage(incomingMessage);
-
-				//update
-				sim.execute(1, c);
-				if(Math.min(lastP1, lastP2) > sim.frame) {
-					sim.update();
-				}
-				for(var i=0; i<skipped; i++) {
-					if(Math.min(lastP1, lastP2) > sim.frame) {
-						sim.update();
-					}
-				}
-
-				//sync
-				//var outgoingMessage = new rollbackgameengine.networking.VariableMessage();
-				//outgoingMessage.addBoolean(true); //is a sync message
-				//sim.encode(outgoingMessage);
-				//p1.send(outgoingMessage.constructMessage().array, {binary:true, mask:false});
-
-				//bounce
-				var byteSize = Math.ceil((c.totalBitSize+1+rollbackgameengine.networking.calculateUnsignedIntegerBitSize(skipped))/8);
-				var outgoingMessage = new rollbackgameengine.networking.OutgoingMessage(byteSize);
-				outgoingMessage.addBoolean(false); //not a sync message
-				if(skippedPreset) {
-					outgoingMessage.addBoolean(true);
-					outgoingMessage.addUnsignedInteger(skipped, frameSkipBitSize);
-				}else {
-					if(frameSkipBitSize) {
-						outgoingMessage.addBoolean(false);
-					}
-					outgoingMessage.addUnsignedInteger(skipped);
-				}
-				c.addDataToMessage(outgoingMessage);
-				p1.send(outgoingMessage.array, {binary:true, mask:false});
+				//handle command
+				handleCommand(ws, incomingMessage);
 			}
 		}
 
