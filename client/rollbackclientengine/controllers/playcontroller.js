@@ -415,11 +415,20 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
 	var skipped = this.frameDifference-1;
 	var frameBitSize = rollbackgameengine.networking.calculateUnsignedIntegerBitSize(skipped);
 
+	//sync request
+	if(this.syncRequested) {
+		//todo - actually calculate the proper sync value
+		var syncValue = 1; //hardcoded
+	}
+
 	if(!this.frameSkipBitSize || frameBitSize > this.frameSkipBitSize) {
 		//variable length
 
 		//calculate byte size
 		var byteSize = this.outgoingCommand.totalBitSize + 1 + rollbackgameengine.networking.calculateVariableLengthUnsignedIntegerBitSize(skipped);
+		if(this.syncRequested) {
+			byteSize += rollbackgameengine.networking.calculateUnsignedIntegerBitSize(syncValue);
+		}
 		byteSize /= 8;
 		byteSize = Math.ceil(byteSize);
 
@@ -448,10 +457,22 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
 			console.log("PRESET SKIPPED WITH FRAME DIFF " + this.frameDifference + " AND FRAME BIT SIZE " + frameBitSize);
 		}
 
+		//calculate byte size
+		var byteSize = null;
+		if(this.syncRequested) {
+			//calculated
+			byteSize = this.outgoingCommand.totalBitSize + 1 + this.frameSkipBitSize + rollbackgameengine.networking.calculateUnsignedIntegerBitSize(syncValue);
+			byteSize /= 8;
+			byteSize = Math.ceil(byteSize);
+		}else {
+			//default
+			byteSize = this.outgoingByteSize;
+		}
+
 		//get message
-		message = rollbackgameengine.pool.acquire("msg"+this.outgoingByteSize);
+		message = rollbackgameengine.pool.acquire("msg"+byteSize);
 		if(!message) {
-			message = new rollbackgameengine.networking.OutgoingMessage(this.outgoingByteSize);
+			message = new rollbackgameengine.networking.OutgoingMessage(byteSize);
 		}
 		message.reset();
 
@@ -511,6 +532,12 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
 
 	//append command data to message
 	c.addDataToMessage(message);
+
+	//sync value
+	if(this.syncRequested) {
+		this.syncRequested = false;
+		message.addFinalUnsignedInteger(syncValue);
+	}
 
 	//send message
 	this.connection.send(message);
@@ -714,6 +741,7 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
 		//get sync request
 		if(incomingMessage.nextBoolean()) {
 			console.log("sync requested!");
+			this.syncRequested = true;
 		}
 
 		//get frame
