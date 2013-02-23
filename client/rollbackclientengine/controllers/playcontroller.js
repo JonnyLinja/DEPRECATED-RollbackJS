@@ -536,6 +536,7 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
 	if(this.syncRequested && this.lastSyncValue) {
 		this.syncRequested = false;
 		message.addFinalUnsignedInteger(this.lastSyncValue);
+		this.lastSyncValue = null;
 	}
 
 	//send message
