@@ -170,13 +170,6 @@ rollbackclientengine.controllers.PlayController = function(options) {
 rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation = function() {
 	//todo - command lookahead check
 
-	/*
-	//determine game delay is over
-	if(this.gameDelay) {
-		return;
-	}
-	*/
-
 	//determine frame to loop to
 	if(this.shouldSendPlayer) {
 		//todo get the least of all the player frames and set to least frame
@@ -558,15 +551,6 @@ rollbackclientengine.controllers.PlayController.prototype.update = function() {
 		return;
 	}
 
-	/*
-	//determine game delay is over
-	if(this.gameDelay) {
-		if(this.perceivedSimulation.frame >= 0 && this.trueSimulation.frame <= this.perceivedSimulation.frame) {
-			this.gameDelay = false;
-		}
-	}
-	*/
-
 	//debug logging
 	if(this.perceivedSimulation.frame > 100) {
 		this.logsDisabled = true;
@@ -746,7 +730,6 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
 
 		//get sync request
 		if(incomingMessage.nextBoolean()) {
-			console.log("sync requested!");
 			this.syncRequested = true;
 		}
 

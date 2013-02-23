@@ -158,6 +158,11 @@ Room.prototype.handleMessage = function(player, incomingMessage) {
 		player.delay = incomingMessage.nextUnsignedInteger(7);
 		console.log("received player delay " + player.delay);
 
+		//default commands
+		for(var i=0; i<player.delay; i++) {
+			player.commands.add(new CommandObject());
+		}
+
 		//start
 		if(this.ready && !this.started) {
 			this.start();
