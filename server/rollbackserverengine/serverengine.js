@@ -125,6 +125,18 @@ Room.prototype.canUpdate = function() {
 
 	//return
 	return true;
+};
+
+Room.prototype.isSyncing = function() {
+	//loop
+	for(var i=0, j=this.players.length; i<j; i++) {
+		if(!this.players[i].syncReceived) {
+			return true;
+		}
+	}
+
+	//return
+	return false;
 }
 
 Room.prototype.update = function() {
@@ -170,7 +182,7 @@ Room.prototype.handleMessage = function(player, incomingMessage) {
 	}else {
 		//game message
 
-		//skipped
+		//parse skipped
 		var skipped = null;
 		var skippedPreset = null;
 		if(!frameSkipBitSize) {
@@ -187,7 +199,7 @@ Room.prototype.handleMessage = function(player, incomingMessage) {
 			skippedPreset = false;
 		}
 
-		//command
+		//parse command
 		var cmd = new CommandObject();
 		cmd.loadFromMessage(incomingMessage);
 		if(!this.shouldSendFrame) {
@@ -201,18 +213,31 @@ Room.prototype.handleMessage = function(player, incomingMessage) {
 			//todo
 		}
 
-		//sync value
-		if(incomingMessage.finalUnsignedInteger() > 0) {
+		//parse sync value
+		var receivedSyncValue = incomingMessage.finalUnsignedInteger();
+		if(receivedSyncValue > 0) {
 			//received
-			player.isSyncing = false;
+			player.syncReceived = true;
+
+			console.log("sync value received " + receivedSyncValue);
+			if(!this.isSyncing()) {
+				console.log("all sync values received, reset");
+				this.syncCheckValue = null;
+				for(var i=0, j=this.players.length; i<j; i++) {
+					this.players[i].syncSent = false;
+					this.players[i].syncReceived = false;
+				}
+			}
 		}
 
-		//todo - update
-		//todo - save sync value
-		this.update();
+		//update
+		var syncValue = this.update();
+		if(!this.syncCheckValue) {
+			this.syncCheckValue = syncValue;
+		}
 
 		//send message
-		if(true) {
+		if(false) {
 			//sync dump
 			//todo - make this not send to other players, sync is for yourself
 
@@ -236,56 +261,46 @@ Room.prototype.handleMessage = function(player, incomingMessage) {
 			//create message
 			var outgoingMessage = new rollbackgameengine.networking.OutgoingMessage(byteSize);		
 
-			//message type
-			outgoingMessage.addBoolean(false); //not a sync message
-
-			//todo - request sync
-			/*
-			if(isP1) {
-				//p2
-				if(!isP2Syncing && (syncValue || syncCheckValueP2)) {
-					//send sync
-					outgoingMessage.addBoolean(true);
-					syncCheckValueP2 = null;
-					isP2Syncing = true;
-				}else {
-					//nothing
-					outgoingMessage.addBoolean(false);
-				}
-			}else {
-				//p1
-				if(!isP1Syncing && (syncValue || syncCheckValueP1)) {
-					//send sync
-					outgoingMessage.addBoolean(true);
-					syncCheckValueP1 = null;
-					isP1Syncing = true;
-				}else {
-					//nothing
-					outgoingMessage.addBoolean(false);
-				}
-			}
-			*/
-			outgoingMessage.addBoolean(false);
-
-			//add skipped
-			if(skippedPreset) {
-				outgoingMessage.addBoolean(true);
-				outgoingMessage.addUnsignedInteger(skipped, frameSkipBitSize);
-			}else {
-				if(frameSkipBitSize) {
-					outgoingMessage.addBoolean(false);
-				}
-				outgoingMessage.addUnsignedInteger(skipped);
-			}
-
-			//add command
-			cmd.addDataToMessage(outgoingMessage);
-
-			//send
+			//loop
 			for(var i=0, j=this.players.length; i<j; i++) {
-				if(this.players[i] !== player) {
-					this.players[i].send(outgoingMessage.array, {binary:true, mask:false});
+				//valid check
+				if(this.players[i] === player) {
+					continue;
 				}
+
+				//reset
+				outgoingMessage.reset();
+
+				//message type
+				outgoingMessage.addBoolean(false); //not a sync message
+
+				//request sync
+				if(this.syncCheckValue && !this.players[i].syncSent) {
+					//sync
+					outgoingMessage.addBoolean(true);
+					this.players[i].syncSent = true;
+					console.log("sync request sent");
+				}else {
+					//don't sync
+					outgoingMessage.addBoolean(false);
+				}
+
+				//add skipped
+				if(skippedPreset) {
+					outgoingMessage.addBoolean(true);
+					outgoingMessage.addUnsignedInteger(skipped, frameSkipBitSize);
+				}else {
+					if(frameSkipBitSize) {
+						outgoingMessage.addBoolean(false);
+					}
+					outgoingMessage.addUnsignedInteger(skipped);
+				}
+
+				//add command
+				cmd.addDataToMessage(outgoingMessage);
+
+				//send
+				this.players[i].send(outgoingMessage.array, {binary:true, mask:false});
 			}
 		}
 	}
@@ -327,7 +342,8 @@ rollbackserverengine.start = function(options) {
 
 		//load player
 		player.delay = null;
-		player.isSyncing = false;
+		player.syncSent = false;
+		player.syncReceived = false;
 		player.commands = new rollbackgameengine.datastructures.SinglyLinkedList();
 		player.room = null;
 
