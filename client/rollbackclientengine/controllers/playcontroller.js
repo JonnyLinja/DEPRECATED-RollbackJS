@@ -158,6 +158,11 @@ rollbackclientengine.controllers.PlayController = function(options) {
 
 	//frame difference - how many frames since last perceived update
 	this.frameDifference = 0;
+
+	//sync
+	this.lastSyncValue = null;
+	this.syncFrameRate = options.syncFrameRate;
+	this.syncCalc = new rollbackgameengine.sync.SyncCalculator();
 };
 
 //updates
@@ -250,6 +255,13 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
 
 		//update true simulation
 		this.trueSimulation.update();
+
+		//sync
+		if(this.trueSimulation.frame % this.syncFrameRate === 0) {
+			this.trueSimulation.world.encode(this.syncCalc); //ugly, shouldn't have to access world
+		 	this.lastSyncValue = this.syncCalc.calculateSyncValue();
+			console.log("calculated sync value for " + this.trueSimulation.frame + " to be " + this.lastSyncValue);
+		}
 	}while(this.trueSimulation.frame <= leastFrame);
 
 	//determine needed
@@ -415,19 +427,13 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
 	var skipped = this.frameDifference-1;
 	var frameBitSize = rollbackgameengine.networking.calculateUnsignedIntegerBitSize(skipped);
 
-	//sync request
-	if(this.syncRequested) {
-		//todo - actually calculate the proper sync value
-		var syncValue = 1; //hardcoded
-	}
-
 	if(!this.frameSkipBitSize || frameBitSize > this.frameSkipBitSize) {
 		//variable length
 
 		//calculate byte size
 		var byteSize = this.outgoingCommand.totalBitSize + 1 + rollbackgameengine.networking.calculateVariableLengthUnsignedIntegerBitSize(skipped);
-		if(this.syncRequested) {
-			byteSize += rollbackgameengine.networking.calculateUnsignedIntegerBitSize(syncValue);
+		if(this.syncRequested && this.lastSyncValue) {
+			byteSize += rollbackgameengine.networking.calculateUnsignedIntegerBitSize(this.lastSyncValue);
 		}
 		byteSize /= 8;
 		byteSize = Math.ceil(byteSize);
@@ -459,9 +465,9 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
 
 		//calculate byte size
 		var byteSize = null;
-		if(this.syncRequested) {
+		if(this.syncRequested && this.lastSyncValue) {
 			//calculated
-			byteSize = this.outgoingCommand.totalBitSize + 1 + this.frameSkipBitSize + rollbackgameengine.networking.calculateUnsignedIntegerBitSize(syncValue);
+			byteSize = this.outgoingCommand.totalBitSize + 1 + this.frameSkipBitSize + rollbackgameengine.networking.calculateUnsignedIntegerBitSize(this.lastSyncValue);
 			byteSize /= 8;
 			byteSize = Math.ceil(byteSize);
 		}else {
@@ -534,9 +540,9 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
 	c.addDataToMessage(message);
 
 	//sync value
-	if(this.syncRequested) {
+	if(this.syncRequested && this.lastSyncValue) {
 		this.syncRequested = false;
-		message.addFinalUnsignedInteger(syncValue);
+		message.addFinalUnsignedInteger(this.lastSyncValue);
 	}
 
 	//send message
