@@ -33,9 +33,6 @@ var Room = function() {
 
 	//simulation
 	this.simulation = new SimulationObject();
-
-	//sync - todo, consider multiple ones for observers
-	this.syncCheckValue = null;
 };
 
 //lobby
@@ -127,26 +124,12 @@ Room.prototype.canUpdate = function() {
 	return true;
 };
 
-Room.prototype.isSyncing = function() {
-	//loop
-	for(var i=0, j=this.players.length; i<j; i++) {
-		if(!this.players[i].syncReceived) {
-			return true;
-		}
-	}
-
-	//return
-	return false;
-}
-
 Room.prototype.update = function() {
 	//declare variables
 	var value = null;
 
 	//loop
-	var count = 0;
 	while(this.canUpdate()) {
-		count++;
 		//execute commands
 		for(var i=0, j=this.players.length; i<j; i++) {
 			this.simulation.execute(i, this.players[i].commands.pop());
@@ -217,23 +200,22 @@ Room.prototype.handleMessage = function(player, incomingMessage) {
 		var receivedSyncValue = incomingMessage.finalUnsignedInteger();
 		if(receivedSyncValue > 0) {
 			//received
-			player.syncReceived = true;
-
-			console.log("sync value received " + receivedSyncValue);
-			if(!this.isSyncing()) {
-				console.log("all sync values received, reset");
-				this.syncCheckValue = null;
-				for(var i=0, j=this.players.length; i<j; i++) {
-					this.players[i].syncSent = false;
-					this.players[i].syncReceived = false;
-				}
+			if(receivedSyncValue !== player.syncCheckValue) {
+				console.log("received DIFFERENT sync value " + receivedSyncValue);
+			}else {
+				console.log("received SAME sync value " + receivedSyncValue);
 			}
+			player.syncCheckValue = null;
+			player.isSyncing = false;
 		}
 
 		//update
 		var syncValue = this.update();
-		if(!this.syncCheckValue) {
-			this.syncCheckValue = syncValue;
+
+		//save sync check value
+		if(syncValue && !player.syncCheckValue) {
+			console.log("saving sync value");
+			player.syncCheckValue = syncValue;
 		}
 
 		//send message
@@ -275,11 +257,15 @@ Room.prototype.handleMessage = function(player, incomingMessage) {
 				outgoingMessage.addBoolean(false); //not a sync message
 
 				//request sync
-				if(this.syncCheckValue && !this.players[i].syncSent) {
+				if(!this.players[i].isSyncing && (syncValue || this.players[i].syncCheckValue)) {
 					//sync
 					outgoingMessage.addBoolean(true);
-					this.players[i].syncSent = true;
-					console.log("sync request sent");
+					if(syncValue) {
+						//use latest sync value
+						this.players[i].syncCheckValue = syncValue;
+					}
+					this.players[i].isSyncing = true;
+					console.log(i + " sync request sent");
 				}else {
 					//don't sync
 					outgoingMessage.addBoolean(false);
@@ -342,8 +328,8 @@ rollbackserverengine.start = function(options) {
 
 		//load player
 		player.delay = null;
-		player.syncSent = false;
-		player.syncReceived = false;
+		player.syncCheckValue = null;
+		player.isSyncing = false;
 		player.commands = new rollbackgameengine.datastructures.SinglyLinkedList();
 		player.room = null;
 
