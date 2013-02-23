@@ -31,7 +31,7 @@ rollbackgameengine.sync.SyncCalculator.prototype.calculateSyncValue = function()
 	}
 
 	//return
-	return value;
+	return value+1;
 };
 
 rollbackgameengine.sync.SyncCalculator.prototype.addValue = function(num) {
