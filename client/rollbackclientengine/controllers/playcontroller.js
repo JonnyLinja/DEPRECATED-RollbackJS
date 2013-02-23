@@ -841,11 +841,7 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
 rollbackclientengine.controllers.PlayController.prototype.onDisconnect = function() {
 	//debug
 	this.displayedMessage = false;
-	if(this.started) {
-		this.message = "Disconnected, refresh to play again";
-	}else {
-		this.message = "Busy, 2 people are already playing";
-	}
+	this.message = "Disconnected, refresh to play again";
 
 	//toggle boolean
 	this.started = false;
