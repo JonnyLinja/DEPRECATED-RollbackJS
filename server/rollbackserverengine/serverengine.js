@@ -25,8 +25,8 @@ var syncCalc = new rollbackgameengine.sync.SyncCalculator();
 //room
 var Room = function() {
 	//booleans
-	this.ready = false;
-	this.started = false;
+	this.ready = false; //enough people, but does NOT have each player's delay
+	this.started = false; //game started
 
 	//players
 	this.players = new Array();
@@ -48,6 +48,9 @@ Room.prototype.addPlayer = function(player) {
 	if(this.ready) {
 		return;
 	}
+
+	//temp debug
+	player.id = this.players.length;
 
 	//add player
 	this.players[this.players.length] = player;
@@ -140,14 +143,17 @@ Room.prototype.update = function() {
 
 		//sync
 		if(this.simulation.frame % syncFrameRate === 0) {
+			//calculate sync value
 			this.simulation.world.encode(syncCalc); //ugly, shouldn't have to access world
 		 	value = syncCalc.calculateSyncValue();
+
+		 	//save value
+		 	for(var i=0, j=this.players.length; i<j; i++) {
+		 		this.players[i].syncValues.add(value);
+			}
 			console.log("calculated sync value for " + this.simulation.frame + " to be " + value);
 		}
 	}
-
-	//return
-	return value;
 };
 
 Room.prototype.handleMessage = function(player, incomingMessage) {
@@ -201,27 +207,8 @@ Room.prototype.handleMessage = function(player, incomingMessage) {
 			//todo
 		}
 
-		//parse sync value
-		var receivedSyncValue = incomingMessage.finalUnsignedInteger();
-		if(receivedSyncValue > 0) {
-			//received
-			if(receivedSyncValue !== player.syncCheckValue) {
-				console.log("received DIFFERENT sync value " + receivedSyncValue);
-			}else {
-				console.log("received SAME sync value " + receivedSyncValue);
-			}
-			player.syncCheckValue = null;
-			player.isSyncing = false;
-		}
-
 		//update
-		var syncValue = this.update();
-
-		//save sync check value
-		if(syncValue && !player.syncCheckValue) {
-			console.log("saving sync value");
-			player.syncCheckValue = syncValue;
-		}
+		this.update();
 
 		//send message
 		if(false) {
@@ -243,38 +230,38 @@ Room.prototype.handleMessage = function(player, incomingMessage) {
 			//bounce
 
 			//calculate size
-			var byteSize = Math.ceil((c.totalBitSize+1+1+rollbackgameengine.networking.calculateUnsignedIntegerBitSize(skipped))/8);
+			var bitSize = 1 + rollbackgameengine.networking.calculateUnsignedIntegerBitSize(skipped) + c.totalBitSize + 1;
+			var byteSize = Math.ceil(bitSize/8);
 
-			//create message
-			var outgoingMessage = new rollbackgameengine.networking.OutgoingMessage(byteSize);		
+			//declare variables
+			var outgoingMessage = null;
+			var p = null;
+			var syncValue = null;
 
 			//loop
 			for(var i=0, j=this.players.length; i<j; i++) {
+				//set player
+				p = this.players[i];
+
 				//valid check
-				if(this.players[i] === player) {
+				if(p === player) {
 					continue;
 				}
 
-				//reset
-				outgoingMessage.reset();
+				//sync value
+				syncValue = p.syncValues.pop();
+
+				//create message
+				if(syncValue) {
+					//sync value
+					outgoingMessage = new rollbackgameengine.networking.OutgoingMessage(Math.ceil((bitSize+rollbackgameengine.networking.calculateUnsignedIntegerBitSize(syncValue))/8));
+				}else {
+					//no sync value
+					outgoingMessage = new rollbackgameengine.networking.OutgoingMessage(byteSize);
+				}
 
 				//message type
 				outgoingMessage.addBoolean(false); //not a sync message
-
-				//request sync
-				if(!this.players[i].isSyncing && (syncValue || this.players[i].syncCheckValue)) {
-					//sync
-					outgoingMessage.addBoolean(true);
-					if(syncValue) {
-						//use latest sync value
-						this.players[i].syncCheckValue = syncValue;
-					}
-					this.players[i].isSyncing = true;
-					console.log(i + " sync request sent");
-				}else {
-					//don't sync
-					outgoingMessage.addBoolean(false);
-				}
 
 				//add skipped
 				if(skippedPreset) {
@@ -290,8 +277,16 @@ Room.prototype.handleMessage = function(player, incomingMessage) {
 				//add command
 				cmd.addDataToMessage(outgoingMessage);
 
+				//has dump
+				outgoingMessage.addBoolean(false);
+
+				//sync value
+				if(syncValue) {
+					outgoingMessage.addFinalUnsignedInteger(syncValue);
+				}
+
 				//send
-				this.players[i].send(outgoingMessage.array, {binary:true, mask:false});
+				p.send(outgoingMessage.array, {binary:true, mask:false});
 			}
 		}
 	}
@@ -333,10 +328,9 @@ rollbackserverengine.start = function(options) {
 
 		//load player
 		player.delay = null;
-		player.syncCheckValue = null;
-		player.isSyncing = false;
 		player.commands = new rollbackgameengine.datastructures.SinglyLinkedList();
 		player.room = null;
+		player.syncValues = new rollbackgameengine.datastructures.SinglyLinkedList();
 
 		//set lobby
 		if(lobbyRoom.ready) {
