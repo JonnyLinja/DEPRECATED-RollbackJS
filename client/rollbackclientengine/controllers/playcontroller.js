@@ -86,8 +86,6 @@ rollbackclientengine.controllers.PlayController = function(options) {
 
 	//frame delay
 	this.frameDelay = options.frameDelay + 1;
-	//this.gameDelay = true;
-	//this.perceivedSimulation.frame -= this.frameDelay; //causes it to start late - doesn't do anything as true world rollback just ignores it
 
 	//todo - consider isTrueSimulation boolean
 
@@ -160,9 +158,50 @@ rollbackclientengine.controllers.PlayController = function(options) {
 	this.frameDifference = 0;
 
 	//sync
-	this.lastSyncValue = null;
 	this.syncFrameRate = options.syncFrameRate;
 	this.syncCalc = new rollbackgameengine.sync.SyncCalculator();
+	this.serverSyncValues = new rollbackgameengine.datastructures.SinglyLinkedList();
+	this.clientSyncValues = new rollbackgameengine.datastructures.SinglyLinkedList();
+	this.requestDump = false;
+};
+
+//sync
+
+rollbackclientengine.controllers.PlayController.prototype._syncClient = function(syncValue) {
+	//declare variables
+	var compare = this.serverSyncValues.pop();
+
+	console.log("calculated sync value for " + this.trueSimulation.frame + " to be " + syncValue);
+
+	if(compare) {
+		//check sync
+		if(compare !== syncValue) {
+			this.requestDump = true;
+		}
+	}else {
+		//add to list
+		this.clientSyncValues.add(syncValue);
+	}
+};
+
+rollbackclientengine.controllers.PlayController.prototype._syncServer = function(syncValue) {
+	//valid check
+	if(!syncValue) {
+		return;
+	}
+
+	//declare variables
+	var compare = this.clientSyncValues.pop();
+
+	if(compare) {
+		//check sync
+		if(compare !== syncValue) {
+			this.requestDump = true;
+		}
+	}else {
+		//add to list
+		this.serverSyncValues.add(syncValue);
+	}
 };
 
 //updates
@@ -229,7 +268,7 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
 
 			//increment true command
 			this.trueCommands[i] = c;
-
+			/*
 			//pool unused commands
 			while(this.commands[i].head !== c && this.commands[i].head !== this.perceivedCommands[i]) { //why is this if statement failing?
 				//debug log
@@ -239,6 +278,7 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
 				//pop and pool
 				rollbackgameengine.pool.add(this.CommandObject, this.commands[i].pop());
 			}
+			*/
 		}
 
 		//debug log
@@ -252,8 +292,7 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
 		//sync
 		if(this.trueSimulation.frame % this.syncFrameRate === 0) {
 			this.trueSimulation.world.encode(this.syncCalc); //ugly, shouldn't have to access world
-		 	this.lastSyncValue = this.syncCalc.calculateSyncValue();
-			console.log("calculated sync value for " + this.trueSimulation.frame + " to be " + this.lastSyncValue);
+		 	this._syncClient(this.syncCalc.calculateSyncValue());
 		}
 	}while(this.trueSimulation.frame <= leastFrame);
 
@@ -418,72 +457,38 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
 	//declare variables
 	var message = null;
 	var skipped = this.frameDifference-1;
-	var frameBitSize = rollbackgameengine.networking.calculateUnsignedIntegerBitSize(skipped);
 
-	if(!this.frameSkipBitSize || frameBitSize > this.frameSkipBitSize) {
-		//variable length
+	if(skipped > 0) {
+		//frame was skipped
 
 		//calculate byte size
-		var byteSize = this.outgoingCommand.totalBitSize + 1 + rollbackgameengine.networking.calculateVariableLengthUnsignedIntegerBitSize(skipped);
-		if(this.syncRequested && this.lastSyncValue) {
-			byteSize += rollbackgameengine.networking.calculateUnsignedIntegerBitSize(this.lastSyncValue);
-		}
-		byteSize /= 8;
-		byteSize = Math.ceil(byteSize);
-
-		//debug logging
-		if(!this.logsDisabled) {
-			console.log("VARIABLE SKIPPED WITH FRAME DIFF " + this.frameDifference + " AND FRAME BIT SIZE " + frameBitSize + " AND TOTAL BYTE SIZE " + byteSize);
-		}
+		var byteSize = Math.ceil((this.outgoingCommand.totalBitSize + 1 + rollbackgameengine.networking.calculateUnsignedIntegerBitSize(skipped))/8);
 
 		//get message
 		message = rollbackgameengine.pool.acquire("msg"+byteSize);
 		if(!message) {
-			message = new rollbackgameengine.networking.OutgoingMessage(byteSize);
-		}
-		message.reset();
-
-		//frame data
-		if(this.frameSkipBitSize) {
-			message.addBoolean(false);
-		}
-		message.addUnsignedInteger(skipped);
-	}else {
-		//preset length
-
-		//debug logging
-		if(!this.logsDisabled) {
-			console.log("PRESET SKIPPED WITH FRAME DIFF " + this.frameDifference + " AND FRAME BIT SIZE " + frameBitSize);
-		}
-
-		//calculate byte size
-		var byteSize = null;
-		if(this.syncRequested && this.lastSyncValue) {
-			//calculated
-			byteSize = this.outgoingCommand.totalBitSize + 1 + this.frameSkipBitSize + rollbackgameengine.networking.calculateUnsignedIntegerBitSize(this.lastSyncValue);
-			byteSize /= 8;
-			byteSize = Math.ceil(byteSize);
+			//reset pooled
+			message.reset();
 		}else {
-			//default
-			byteSize = this.outgoingByteSize;
-		}
-
-		//get message
-		message = rollbackgameengine.pool.acquire("msg"+byteSize);
-		if(!message) {
+			//new
 			message = new rollbackgameengine.networking.OutgoingMessage(byteSize);
 		}
-		message.reset();
+	}else {
+		//no frames skipped
 
-		//frame data
-		message.addBoolean(true);
-		message.addUnsignedInteger(skipped, this.frameSkipBitSize);
+		//get message
+		message = rollbackgameengine.pool.acquire("msg"+this.outgoingByteSize);
+		if(message) {
+			//reset pooled
+			message.reset();
+		}else {
+			//new
+			message = new rollbackgameengine.networking.OutgoingMessage(this.outgoingByteSize);
+		}
 	}
 
 	//create command
 	var c = this._getNewCommand();
-
-	//load command
 	c.loadFromCommand(this.outgoingCommand);
 
 	//set frame
@@ -507,8 +512,6 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
 		for(var i=1; i<this.frameDifference; i++) {
 			//create command
 			c = this._getNewCommand();
-
-			//load command
 			c.loadFromCommand(this.outgoingCommand);
 
 			//debug logging
@@ -529,15 +532,19 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
 		this.displayCommands();
 	}
 
+	//append dump request
+	if(this.requestDump) {
+		this.requestDump = false;
+		c.addBoolean(true);
+	}else {
+		c.addBoolean(false);
+	}
+
 	//append command data to message
 	c.addDataToMessage(message);
 
-	//sync value
-	if(this.syncRequested && this.lastSyncValue) {
-		this.syncRequested = false;
-		message.addFinalUnsignedInteger(this.lastSyncValue);
-		this.lastSyncValue = null;
-	}
+	//append frame skip
+	message.addFinalUnsignedInteger(skipped);
 
 	//send message
 	this.connection.send(message);
@@ -639,8 +646,6 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedText = funct
 };
 
 rollbackclientengine.controllers.PlayController.prototype.onReceivedData = function(incomingMessage) {
-	//todo sync start time
-
 	//debug logging
 	var c = null;
 
@@ -719,22 +724,17 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
 
 		//set started
 		this.started = true;
-	}else if(!incomingMessage.nextBoolean()) {
+	}else {
 		//game command
 
-		//player
+		//parse player
 		var player = null;
 		if(this.shouldSendPlayer) {
 			//todo - store and use it
 			incomingMessage.nextUnsignedInteger(this.sendPlayerBitSize);
 		}
 
-		//get sync request
-		if(incomingMessage.nextBoolean()) {
-			this.syncRequested = true;
-		}
-
-		//get frame
+		//parse frame difference
 		var receivedFrameDifference = null;
 		if(!this.frameSkipBitSize) {
 			//variable length
@@ -747,11 +747,22 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
 			receivedFrameDifference = incomingMessage.nextUnsignedInteger()+1;
 		}
 
-		//get command
+		//parse command
 		var c = this._getNewCommand();
-
-		//load command
 		c.loadFromMessage(incomingMessage);
+
+		//parse dump
+		if(incomingMessage.nextBoolean()) {
+			//todo
+
+			console.log("DUMP");
+		
+			//temp just update true
+			//this.trueSimulation.decode(incomingMessage);
+		}
+
+		//parse sync value
+		this._syncServer(incomingMessage.finalUnsignedInteger());
 
 		//set player
 		if(this.shouldSendPlayer) {
@@ -818,13 +829,6 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
 			console.log("Received Enemy Command");
 			this.displayCommands();
 		}
-	}else {
-		//sync command
-
-		console.log("SYNC");
-		
-		//temp just update true
-		this.trueSimulation.decode(incomingMessage);
 	}
 };
 

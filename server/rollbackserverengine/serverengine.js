@@ -176,21 +176,10 @@ Room.prototype.handleMessage = function(player, incomingMessage) {
 	}else {
 		//game message
 
-		//parse skipped
-		var skipped = null;
-		var skippedPreset = null;
-		if(!frameSkipBitSize) {
-			//variable length
-			skipped = incomingMessage.nextUnsignedInteger();
-			skippedPreset = false;
-		}else if(incomingMessage.nextBoolean()) {
-			//preset length
-			skipped = incomingMessage.nextUnsignedInteger(frameSkipBitSize);
-			skippedPreset = true;
-		}else {
-			//variable length
-			skipped = incomingMessage.nextUnsignedInteger();
-			skippedPreset = false;
+		//parse dump
+		if(incomingMessage.nextBoolean()) {
+			player.dumpRequested = true;
+			console.log(player.id + " requested dump");
 		}
 
 		//parse command
@@ -206,6 +195,9 @@ Room.prototype.handleMessage = function(player, incomingMessage) {
 		}else {
 			//todo
 		}
+
+		//parse skipped
+		var skipped = incomingMessage.finalUnsignedInteger();
 
 		//update
 		this.update();
@@ -230,7 +222,16 @@ Room.prototype.handleMessage = function(player, incomingMessage) {
 			//bounce
 
 			//calculate size
-			var bitSize = 1 + rollbackgameengine.networking.calculateUnsignedIntegerBitSize(skipped) + c.totalBitSize + 1;
+			var skipBitSize = rollbackgameengine.networking.calculateUnsignedIntegerBitSize(skipped);
+			var isVariableLengthSkip = (!frameSkipBitSize || skipBitSize > frameSkipBitSize);
+			if(isVariableLengthSkip) {
+				//variable length
+				skipBitSize = rollbackgameengine.networking.calculateVariableLengthUnsignedIntegerBitSize(skipped);
+			}else {
+				//preset length
+				skipBitSize = frameSkipBitSize;
+			}
+			var bitSize = 1 + skipBitSize + c.totalBitSize + 1;
 			var byteSize = Math.ceil(bitSize/8);
 
 			//declare variables
@@ -260,27 +261,28 @@ Room.prototype.handleMessage = function(player, incomingMessage) {
 					outgoingMessage = new rollbackgameengine.networking.OutgoingMessage(byteSize);
 				}
 
-				//message type
-				outgoingMessage.addBoolean(false); //not a sync message
-
-				//add skipped
-				if(skippedPreset) {
+				//append skipped
+				if(!isVariableLengthSkip) {
+					//preset length
 					outgoingMessage.addBoolean(true);
 					outgoingMessage.addUnsignedInteger(skipped, frameSkipBitSize);
 				}else {
+					//variable length
 					if(frameSkipBitSize) {
 						outgoingMessage.addBoolean(false);
 					}
 					outgoingMessage.addUnsignedInteger(skipped);
 				}
 
-				//add command
+				//append command
 				cmd.addDataToMessage(outgoingMessage);
 
-				//has dump
+				//append has dump
 				outgoingMessage.addBoolean(false);
 
-				//sync value
+				//todo - dump here
+
+				//append sync value
 				if(syncValue) {
 					outgoingMessage.addFinalUnsignedInteger(syncValue);
 				}
@@ -331,6 +333,7 @@ rollbackserverengine.start = function(options) {
 		player.commands = new rollbackgameengine.datastructures.SinglyLinkedList();
 		player.room = null;
 		player.syncValues = new rollbackgameengine.datastructures.SinglyLinkedList();
+		player.dumpRequested = false;
 
 		//set lobby
 		if(lobbyRoom.ready) {
