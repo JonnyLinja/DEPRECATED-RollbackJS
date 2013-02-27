@@ -168,6 +168,41 @@ rollbackclientengine.controllers.PlayController = function(options) {
 
 //sync
 
+rollbackclientengine.controllers.PlayController.prototype._poolCommands = function() {
+	//declare variables
+	var cmd = null;
+
+	//loop
+	for(var i=0; i<this.playerCount; i++) {
+		for(var j=0; j<this.syncFrameRate; j++) {
+			//debug log
+			if(!this.logsDisabled) {
+				console.log("REMOVING COMMAND " + this.commands[i].head.obj.id + " FOR P" + i);
+			}
+
+			//true
+			if(this.commands[i].head === this.trueCommands[i]) {
+				if(!this.logsDisabled) {
+					console.log("REMOVED TRUE CMD FOR" + i + ", TRUE NOW NULL");
+				}
+				this.trueCommands[i] = null;
+			}
+
+			//perceived
+			if(this.commands[i].head === this.perceivedCommands[i]) {
+				if(!this.logsDisabled) {
+					console.log("REMOVED PERCEIVED CMD FOR" + i + ", PERCEIVED NOW NULL");
+				}
+				this.perceivedCommands[i] = null;
+				this.shouldRollback = true;
+			}
+
+			//pop and pool
+			rollbackgameengine.pool.add(this.CommandObject, this.commands[i].pop());
+		}
+	}
+};
+
 rollbackclientengine.controllers.PlayController.prototype._syncClient = function(syncValue) {
 	//declare variables
 	var compare = this.serverSyncValues.pop();
@@ -177,7 +212,11 @@ rollbackclientengine.controllers.PlayController.prototype._syncClient = function
 	if(compare) {
 		//check sync
 		if(!this.dumpRequested && compare !== syncValue) {
+			//request
 			this.requestDump = true;
+		}else {
+			//pool
+			this._poolCommands();
 		}
 	}else {
 		//add to list
@@ -197,7 +236,11 @@ rollbackclientengine.controllers.PlayController.prototype._syncServer = function
 	if(compare) {
 		//check sync
 		if(!this.dumpRequested && compare !== syncValue) {
+			//request
 			this.requestDump = true;
+		}else {
+			//pool
+			this._poolCommands();
 		}
 	}else {
 		//add to list
@@ -269,17 +312,6 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
 
 			//increment true command
 			this.trueCommands[i] = c;
-			/*
-			//pool unused commands
-			while(this.commands[i].head !== c && this.commands[i].head !== this.perceivedCommands[i]) { //why is this if statement failing?
-				//debug log
-				if(!this.logsDisabled) {
-					console.log("REMOVING COMMAND " + this.commands[i].head.obj.id + " FOR P" + i);
-				}
-				//pop and pool
-				rollbackgameengine.pool.add(this.CommandObject, this.commands[i].pop());
-			}
-			*/
 		}
 
 		//debug log
