@@ -185,6 +185,11 @@ Room.prototype.handleMessage = function(player, incomingMessage) {
 		//parse command
 		var cmd = new CommandObject();
 		cmd.loadFromMessage(incomingMessage);
+
+		//parse skipped
+		var skipped = incomingMessage.finalUnsignedInteger();
+
+		//add commands
 		if(!this.shouldSendFrame) {
 			//duplicate commands
 			for(var i=0, c=null; i<skipped+1; i++) {
@@ -195,9 +200,6 @@ Room.prototype.handleMessage = function(player, incomingMessage) {
 		}else {
 			//todo
 		}
-
-		//parse skipped
-		var skipped = incomingMessage.finalUnsignedInteger();
 
 		//update
 		this.update();
@@ -231,7 +233,7 @@ Room.prototype.handleMessage = function(player, incomingMessage) {
 				//preset length
 				skipBitSize = frameSkipBitSize;
 			}
-			var bitSize = 1 + skipBitSize + c.totalBitSize + 1;
+			var bitSize = 1 + skipBitSize + cmd.totalBitSize + 1;
 			var byteSize = Math.ceil(bitSize/8);
 
 			//declare variables

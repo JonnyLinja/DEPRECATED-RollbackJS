@@ -162,7 +162,8 @@ rollbackclientengine.controllers.PlayController = function(options) {
 	this.syncCalc = new rollbackgameengine.sync.SyncCalculator();
 	this.serverSyncValues = new rollbackgameengine.datastructures.SinglyLinkedList();
 	this.clientSyncValues = new rollbackgameengine.datastructures.SinglyLinkedList();
-	this.requestDump = false;
+	this.requestDump = false; //if true, time to send request
+	this.dumpRequested = false; //request made, waiting for response
 };
 
 //sync
@@ -175,7 +176,7 @@ rollbackclientengine.controllers.PlayController.prototype._syncClient = function
 
 	if(compare) {
 		//check sync
-		if(compare !== syncValue) {
+		if(!this.dumpRequested && compare !== syncValue) {
 			this.requestDump = true;
 		}
 	}else {
@@ -195,7 +196,7 @@ rollbackclientengine.controllers.PlayController.prototype._syncServer = function
 
 	if(compare) {
 		//check sync
-		if(compare !== syncValue) {
+		if(!this.dumpRequested && compare !== syncValue) {
 			this.requestDump = true;
 		}
 	}else {
@@ -466,7 +467,7 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
 
 		//get message
 		message = rollbackgameengine.pool.acquire("msg"+byteSize);
-		if(!message) {
+		if(message) {
 			//reset pooled
 			message.reset();
 		}else {
@@ -535,9 +536,9 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
 	//append dump request
 	if(this.requestDump) {
 		this.requestDump = false;
-		c.addBoolean(true);
+		message.addBoolean(true);
 	}else {
-		c.addBoolean(false);
+		message.addBoolean(false);
 	}
 
 	//append command data to message
@@ -800,8 +801,6 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
 			for(var i=1, duplicate=null; i<receivedFrameDifference; i++) {
 				//create command
 				duplicate = this._getNewCommand();
-
-				//load command
 				duplicate.loadFromCommand(c);
 
 				//debug logging
