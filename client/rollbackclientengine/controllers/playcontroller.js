@@ -191,7 +191,7 @@ rollbackclientengine.controllers.PlayController.prototype._poolCommands = functi
 			}
 
 			//pop and pool
-			rollbackgameengine.pool.add(this.CommandObject, this.players[i].commands.pop());
+			rollbackgameengine.pool.add(this.CommandObject, p.commands.pop());
 		}
 	}
 };
