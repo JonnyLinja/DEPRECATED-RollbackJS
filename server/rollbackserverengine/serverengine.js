@@ -33,6 +33,9 @@ var Room = function() {
 
 	//simulation
 	this.simulation = new SimulationObject();
+
+	//counter
+	this.frameCounter = 0;
 };
 
 //lobby
@@ -141,8 +144,14 @@ Room.prototype.update = function() {
 		//update
 		this.simulation.update();
 
+		//increment counter
+		this.frameCounter++;
+
 		//sync
-		if(this.simulation.frame % syncFrameRate === 0) {
+		if(this.frameCounter === syncFrameRate) {
+			//reset counter
+			this.frameCounter = 0;
+
 			//calculate sync value
 			this.simulation.world.encode(syncCalc); //ugly, shouldn't have to access world
 		 	value = syncCalc.calculateSyncValue();
