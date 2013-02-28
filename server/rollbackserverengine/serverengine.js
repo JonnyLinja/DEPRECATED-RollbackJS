@@ -29,7 +29,7 @@ var Room = function() {
 	this.started = false; //game started
 
 	//players
-	this.players = new Array();
+	this.players = [];
 
 	//simulation
 	this.simulation = new SimulationObject();

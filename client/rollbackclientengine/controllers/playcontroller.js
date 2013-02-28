@@ -67,7 +67,7 @@ rollbackclientengine.controllers.PlayController = function(options) {
 	}
 
 	//players
-	this.players = new Array();
+	this.players = [];
 	for(var i=0; i<this.playerCount; i++) {
 		//populate array
 		this.players[i] = new rollbackclientengine.controllers.PlayController.Player();
@@ -97,7 +97,7 @@ rollbackclientengine.controllers.PlayController = function(options) {
 	//last received frame
 	if(this.shouldSendPlayer) {
 		//1 per player
-		this.lastReceivedFrame = new Array();
+		//this.lastReceivedFrame = new Array();
 	}else {
 		//just 1 for the other player
 		//*todo - figure out if starting frame is -1 or 0 or 1, going with 0 for now
