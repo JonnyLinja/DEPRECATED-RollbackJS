@@ -321,7 +321,7 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
 			this.frameCounter = 0;
 
 			//sync value
-			this.trueSimulation.world.encode(this.syncCalc); //ugly, shouldn't have to access world
+			this.trueSimulation.encode(this.syncCalc);
 		 	this._syncClient(this.syncCalc.calculateSyncValue());
 		}
 	}while(leastDifference > 0);
@@ -591,8 +591,8 @@ rollbackclientengine.controllers.PlayController.prototype.render = function(canv
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 		//render
-		this.trueSimulation.render(ctx); //debug
-		//this.perceivedSimulation.render(ctx);
+		//this.trueSimulation.render(ctx); //debug
+		this.perceivedSimulation.render(ctx);
 
 		//debug
 		if(this.frameDifference > 1) {

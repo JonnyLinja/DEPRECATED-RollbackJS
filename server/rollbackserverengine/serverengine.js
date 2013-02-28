@@ -153,7 +153,7 @@ Room.prototype.update = function() {
 			this.frameCounter = 0;
 
 			//calculate sync value
-			this.simulation.world.encode(syncCalc); //ugly, shouldn't have to access world
+			this.simulation.encode(syncCalc);
 		 	value = syncCalc.calculateSyncValue();
 
 		 	//save value

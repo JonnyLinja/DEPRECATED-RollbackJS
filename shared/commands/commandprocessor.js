@@ -30,7 +30,7 @@ shooter.commands.CommandProcessor.prototype.update = function(command) {
 	//click
 	if(!this.mouseDown && command.mouseDown) {
 		//create bullet
-		var bullet = this.simulation.world.addEntity(shooter.entities.bullet);
+		var bullet = this.simulation.addEntity(shooter.entities.bullet);
 
 		//math
 		var mag = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
@@ -42,7 +42,7 @@ shooter.commands.CommandProcessor.prototype.update = function(command) {
 
 		//position bullet - prevent from shooting yourself
 		bullet.center(this.player.centerX, this.player.centerY);
-		while(this.simulation.world.collides(this.player, bullet)) {
+		while(this.simulation.collides(this.player, bullet)) {
 			bullet.x += bullet.vx;
 			bullet.y += bullet.vy;
 		}

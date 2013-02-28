@@ -14,7 +14,7 @@ if(typeof window === 'undefined') {
 
 	//this needs to be tested later, note that rollbackengine needs to be bundled together as well
 	//in theory abuses function only scope to create rollbackengine
-	var rollbackgameengine = require('./rollbackserverengine/rollbackgameengine.js');
+	var rollbackgameengine = require('./rollbackserverengine/gameengine.js');
 }
 
 //easy to read combine script
