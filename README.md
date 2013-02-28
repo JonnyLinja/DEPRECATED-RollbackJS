@@ -6,9 +6,6 @@ SMALL:
 - Add offscreen check convenience function
 
 NEXT:
-- Rewrite spritemaps to have string IDs locally and integer IDs for networking
-- Make frame value a variable length 4 bit encoding (optional set bit)
-- Make outgoing messages non hardcoded length (frame 4 bit, sync last int)
 - Compare sync check with server sync check
 
 AFTER:
