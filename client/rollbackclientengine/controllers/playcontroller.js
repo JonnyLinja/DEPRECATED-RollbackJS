@@ -94,19 +94,23 @@ rollbackclientengine.controllers.PlayController = function(options) {
 	//frame rate
 	this.frameRate = options.frameRate;
 
-	//last received frame
+	//received frame difference
 	if(this.shouldSendPlayer) {
 		//1 per player
-		//this.lastReceivedFrame = new Array();
 	}else {
 		//just 1 for the other player
-		//*todo - figure out if starting frame is -1 or 0 or 1, going with 0 for now
-		this.lastReceivedFrame = 0;
+		this.receivedFrameDifference = 0;
 	}
+
+	//perceived frame difference
+	this.perceivedFrameDifference = 0;
 
 	//timing
 	this.currentTime = null;
 	this.nextFrameTime = null;
+
+	//counter
+	this.frameCounter = 0;
 
 //GENERAL
 
@@ -163,7 +167,7 @@ rollbackclientengine.controllers.PlayController.Player = function() {
 	this.commands = new rollbackgameengine.datastructures.SinglyLinkedList();
 	this.trueCommand = null;
 	this.perceivedCommand = null;
-	this.lastReceivedFrame = null; //todo - make it work with frame rework AND for multiple players
+	this.receivedFrameDifference = null; //todo - make it work with frame rework AND for multiple players
 }
 
 //sync
@@ -246,15 +250,18 @@ rollbackclientengine.controllers.PlayController.prototype._syncServer = function
 rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation = function() {
 	//todo - command lookahead check
 
+	//declare variables
+	var leastDifference = null;
+
 	//determine frame to loop to
 	if(this.shouldSendPlayer) {
 		//todo get the least of all the player frames and set to least frame
 	}else {
-		var leastFrame = Math.min(this.lastReceivedFrame, this.perceivedSimulation.frame-1);
+		leastDifference = Math.min(this.receivedFrameDifference, this.perceivedFrameDifference);
 	}
 
 	//determine should update true
-	if(this.trueSimulation.frame > leastFrame) {
+	if(leastDifference <= 0) {
 		return;
 	}
 
@@ -300,12 +307,24 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
 		//update true simulation
 		this.trueSimulation.update();
 
+		//decrement
+		this.perceivedFrameDifference--;
+		this.receivedFrameDifference--;
+		leastDifference--;
+
+		//increment counter
+		this.frameCounter++;
+
 		//sync
-		if(this.trueSimulation.frame % this.syncFrameRate === 0) {
+		if(this.frameCounter === this.syncFrameRate) {
+			//reset counter
+			this.frameCounter = 0;
+
+			//sync value
 			this.trueSimulation.world.encode(this.syncCalc); //ugly, shouldn't have to access world
 		 	this._syncClient(this.syncCalc.calculateSyncValue());
 		}
-	}while(this.trueSimulation.frame <= leastFrame);
+	}while(leastDifference > 0);
 
 	//determine needed
 	if(!this.shouldRollback) {
@@ -316,9 +335,6 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
 		this.shouldRollback = false;
 	}
 
-	//save frame
-	var currentFrame = this.perceivedSimulation.frame;
-
 	//rollback simulations
 	this.perceivedSimulation.rollback(this.trueSimulation);
 
@@ -328,7 +344,7 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
 	}
 
 	//loop update perceived back to current
-	while(this.perceivedSimulation.frame < currentFrame) {
+	while(this.perceivedFrameDifference > 0) {
 		//loop through player commands
 		for(var i=0; i<this.playerCount; i++) {
 			//get player
@@ -364,6 +380,9 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
 
 		//update perceived simulation
 		this.perceivedSimulation.update();
+
+		//decrement
+		this.perceivedFrameDifference--;
 	}
 };
 
@@ -422,6 +441,9 @@ rollbackclientengine.controllers.PlayController.prototype.updatePerceivedSimulat
 
 		//update perceived simulation
 		this.perceivedSimulation.update();
+
+		//increment perceived frame difference
+		this.perceivedFrameDifference++;
 
 		//increment next frame time
 		this.nextFrameTime += this.frameRate;
@@ -637,7 +659,7 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
 				var enemyDelay = incomingMessage.nextUnsignedInteger(7);
 
 				//last received frame
-				this.lastReceivedFrame = enemyDelay-1;
+				this.receivedFrameDifference = enemyDelay-1;
 
 				//default enemy commands
 				for(var i=0, j=enemyDelay; i<j; i++) {
@@ -726,13 +748,12 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
 			}
 		}
 
-		//last received frame
+		//received frame difference
 		if(this.shouldSendPlayer) {
 			//todo - add frame difference to it
-			//this.lastReceivedFrame[player] += ;
 		}else {
 			//increment
-			this.lastReceivedFrame += receivedFrameDifference;
+			this.receivedFrameDifference += receivedFrameDifference;
 		}
 	}
 };
