@@ -21,6 +21,7 @@ var wss = null;
 var lobbyRoom = null;
 var rooms = new rollbackgameengine.datastructures.DoublyLinkedList("prevRoom", "nextRoom");
 var syncCalc = new rollbackgameengine.sync.SyncCalculator();
+var syncFrameRateBitSize = null;
 
 //room
 var Room = function() {
@@ -284,6 +285,9 @@ Room.prototype.handleMessage = function(player, incomingMessage) {
 				//dump
 				outgoingMessage.addBoolean(true);
 
+				//counter
+				outgoingMessage.addUnsignedInteger(this.frameCounter, syncFrameRateBitSize);
+
 				//encode
 				this.simulation.encode(outgoingMessage);
 			}
@@ -333,6 +337,7 @@ rollbackserverengine.start = function(options) {
 	frameSkipBitSize = options.frameSkipBitSize;
 	minimumUpdateFrame = options.minimumUpdateFrame; //todo - do something with this
 	shouldSendFrame = false; //todo - shouldSendFrame
+	syncFrameRateBitSize = rollbackgameengine.networking.calculateUnsignedIntegerBitSize(syncFrameRate);
 
 	//lobby
 	lobbyRoom = Room.makeRoom();

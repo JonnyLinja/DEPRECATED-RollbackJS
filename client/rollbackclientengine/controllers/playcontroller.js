@@ -205,16 +205,17 @@ rollbackclientengine.controllers.PlayController.prototype._poolCommands = functi
 };
 
 rollbackclientengine.controllers.PlayController.prototype._syncClient = function(syncValue) {
+	console.log("calculated sync value for " + this.trueSimulation.frame + " to be " + syncValue);
+
 	//declare variables
 	var compare = this.serverSyncValues.pop();
 
-	console.log("calculated sync value for " + this.trueSimulation.frame + " to be " + syncValue);
-
 	if(compare) {
 		//check sync
-		if(!this.dumpRequested && compare !== syncValue) {
+		if(!this.dumpRequested && syncValue !== -1 && compare !== syncValue) {
 			//request
 			this.requestDump = true;
+			console.log("request dump true should be " + compare);
 		}
 
 		//pool commands
@@ -237,11 +238,12 @@ rollbackclientengine.controllers.PlayController.prototype._syncServer = function
 	//declare variables
 	var compare = this.clientSyncValues.pop();
 
-	if(compare) {
+	if(compare >= 1) {
 		//check sync
-		if(!this.dumpRequested && compare !== syncValue) {
+		if(!this.dumpRequested && compare !== -1 && compare !== syncValue) {
 			//request
 			this.requestDump = true;
+			console.log("request dump true should be " + compare);
 		}
 
 		//pool commands
@@ -251,6 +253,32 @@ rollbackclientengine.controllers.PlayController.prototype._syncServer = function
 		this.serverSyncValues.add(syncValue);
 	}
 };
+
+rollbackclientengine.controllers.PlayController.prototype._syncCheckAfterTrueSimUpdate = function() {
+	//decrement frame differences
+	this.perceivedFrameDifference--;
+	this.receivedFrameDifference--;
+	this.syncFrameDifference--;
+
+	//increment counter
+	this.frameCounter++;
+
+	//sync
+	if(this.frameCounter === this.syncFrameRate) {
+		//reset counter
+		this.frameCounter = 0;
+
+		//sync value
+		if(!this.dumpRequested) {
+			//actual sync
+			this.trueSimulation.encode(this.syncCalc);
+	 		this._syncClient(this.syncCalc.calculateSyncValue());
+		}else {
+			//dummy
+			this._syncClient(-1);
+		}
+	}
+}
 
 //updates
 
@@ -281,7 +309,7 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
 			continue;
 		}else if(!c) {
 			//todo - remove this temporary check that shouldn't be needed
-			alert("p" + this.player + " lf" + leastFrame + " tf" + this.trueSimulation.frame + " > wtf no true command for " + i + " in 2 player mode?");
+			alert("p" + this.player + " tf" + this.trueSimulation.frame + " > wtf no true command for " + i + " in 2 player mode?");
 			continue;
 		}
 
@@ -294,28 +322,16 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
 
 	//update true simulation
 	this.trueSimulation.update();
-
-	//decrement frame differences
-	this.perceivedFrameDifference--;
-	this.receivedFrameDifference--;
-	this.syncFrameDifference--;
-
-	//increment counter
-	this.frameCounter++;
-
-	//sync
-	if(this.frameCounter === this.syncFrameRate) {
-		//reset counter
-		this.frameCounter = 0;
-
-		//sync value
-		this.trueSimulation.encode(this.syncCalc);
-	 	this._syncClient(this.syncCalc.calculateSyncValue());
-	}
+	this._syncCheckAfterTrueSimUpdate();
 }
 
 rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulationStep = function() {
 	//todo - command lookahead check
+
+	//valid check
+	if(this.dumpRequested || this.requestDump) {
+		return;
+	}
 
 	//declare variables
 	var leastDifference = null;
@@ -538,6 +554,7 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputsStep = funct
 
 	//append dump request
 	if(this.requestDump) {
+		console.log("dump requested");
 		this.requestDump = false;
 		this.dumpRequested = true;
 		message.addBoolean(true);
@@ -725,9 +742,6 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
 
 		//parse should dump
 		var shouldDump = incomingMessage.nextBoolean();
-		if(shouldDump) {
-			this.dumpRequested = false;
-		}
 
 		//parse sync value
 		if(!shouldDump) {
@@ -779,13 +793,41 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
 			//parse dump difference
 			var dumpFrameDifference = this.syncFrameDifference + incomingMessage.nextUnsignedInteger(this.syncFrameRateBitSize);
 
+			console.log("received dump with sync frame difference " + this.syncFrameDifference + " dump frame difference " + dumpFrameDifference + " true frame " + this.trueSimulation.frame);
+
+
 			//decode dump
 			this.trueSimulation.decode(incomingMessage);
 
-			//update decoded true to original true
+			//player
+			var p = null;
+
+			//loop
 			for(var i=0; i<dumpFrameDifference; i++) {
-				this.updateTrueSimulation();
+				//increment command
+				for(var j=0; j<this.playerCount; j++) {
+					//set player
+					p = this.players[j];
+
+					if(!p.trueCommand) {
+						//set to beginning
+						p.trueCommand = p.commands.head;
+					}else {
+						//increment
+						p.trueCommand = p.trueCommand.next;
+					}
+				}
+
+				//increment other variables
+				this._syncCheckAfterTrueSimUpdate();
 			}
+
+
+			//temp - increment frame
+			this.trueSimulation.frame += dumpFrameDifference;
+
+			//reset requested
+			this.dumpRequested = false;
 		}
 	}
 };
