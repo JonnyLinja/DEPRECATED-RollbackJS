@@ -213,93 +213,98 @@ Room.prototype.handleMessage = function(player, incomingMessage) {
 		//update
 		this.update();
 
-		//send message
-		if(false) {
-			//sync dump
-			//todo - make this not send to other players, sync is for yourself
+		//calculate size
+		var skipBitSize = rollbackgameengine.networking.calculateUnsignedIntegerBitSize(skipped);
+		var isVariableLengthSkip = (!frameSkipBitSize || skipBitSize > frameSkipBitSize);
+		if(isVariableLengthSkip) {
+			//variable length
+			skipBitSize = rollbackgameengine.networking.calculateVariableLengthUnsignedIntegerBitSize(skipped);
+		}else {
+			//preset length
+			skipBitSize = frameSkipBitSize;
+		}
+		var bitSize = 1 + skipBitSize + cmd.totalBitSize + 1;
+		var byteSize = Math.ceil(bitSize/8);
+
+		//declare variables
+		var outgoingMessage = null;
+		var p = null;
+		var syncValue = null;
+		var shouldDump = false;
+
+		//loop
+		for(var i=0, j=this.players.length; i<j; i++) {
+			//set player
+			p = this.players[i];
+
+			//valid check
+			if(p === player) {
+				continue;
+			}
+
+			//sync value
+			syncValue = p.syncValues.pop();
+
+			//should dump
+			shouldDump = (!syncValue && p.dumpRequested);
 
 			//create message
-			var outgoingMessage = new rollbackgameengine.networking.VariableMessage();
+			if(shouldDump) {
+				//dump
+				outgoingMessage = new rollbackgameengine.networking.VariableMessage();
+			}else if(syncValue) {
+				//sync value
+				outgoingMessage = new rollbackgameengine.networking.OutgoingMessage(Math.ceil((bitSize+rollbackgameengine.networking.calculateUnsignedIntegerBitSize(syncValue))/8));
+			}else {
+				//no sync value
+				outgoingMessage = new rollbackgameengine.networking.OutgoingMessage(byteSize);
+			}
 
-			//message type
-			outgoingMessage.addBoolean(true); //is a sync message
+			//append skipped
+			if(!isVariableLengthSkip) {
+				//preset length
+				outgoingMessage.addBoolean(true);
+				outgoingMessage.addUnsignedInteger(skipped, frameSkipBitSize);
+			}else {
+				//variable length
+				if(frameSkipBitSize) {
+					outgoingMessage.addBoolean(false);
+				}
+				outgoingMessage.addUnsignedInteger(skipped);
+			}
 
-			//encode
-			this.simulation.encode(outgoingMessage);
+			//append command
+			cmd.addDataToMessage(outgoingMessage);
+
+			//append has dump
+			if(!shouldDump) {
+				//no dump
+				outgoingMessage.addBoolean(false);
+			}else {
+				//dump
+				outgoingMessage.addBoolean(true);
+
+				//encode
+				this.simulation.encode(outgoingMessage);
+			}
+
+			//append sync value
+			if(syncValue) {
+				outgoingMessage.addFinalUnsignedInteger(syncValue);
+			}
 
 			//send
-			player.send(outgoingMessage.constructMessage().array, {binary:true, mask:false});
-		}else {
-			//bounce
-
-			//calculate size
-			var skipBitSize = rollbackgameengine.networking.calculateUnsignedIntegerBitSize(skipped);
-			var isVariableLengthSkip = (!frameSkipBitSize || skipBitSize > frameSkipBitSize);
-			if(isVariableLengthSkip) {
-				//variable length
-				skipBitSize = rollbackgameengine.networking.calculateVariableLengthUnsignedIntegerBitSize(skipped);
-			}else {
-				//preset length
-				skipBitSize = frameSkipBitSize;
-			}
-			var bitSize = 1 + skipBitSize + cmd.totalBitSize + 1;
-			var byteSize = Math.ceil(bitSize/8);
-
-			//declare variables
-			var outgoingMessage = null;
-			var p = null;
-			var syncValue = null;
-
-			//loop
-			for(var i=0, j=this.players.length; i<j; i++) {
-				//set player
-				p = this.players[i];
-
-				//valid check
-				if(p === player) {
-					continue;
-				}
-
-				//sync value
-				syncValue = p.syncValues.pop();
-
-				//create message
-				if(syncValue) {
-					//sync value
-					outgoingMessage = new rollbackgameengine.networking.OutgoingMessage(Math.ceil((bitSize+rollbackgameengine.networking.calculateUnsignedIntegerBitSize(syncValue))/8));
-				}else {
-					//no sync value
-					outgoingMessage = new rollbackgameengine.networking.OutgoingMessage(byteSize);
-				}
-
-				//append skipped
-				if(!isVariableLengthSkip) {
-					//preset length
-					outgoingMessage.addBoolean(true);
-					outgoingMessage.addUnsignedInteger(skipped, frameSkipBitSize);
-				}else {
-					//variable length
-					if(frameSkipBitSize) {
-						outgoingMessage.addBoolean(false);
-					}
-					outgoingMessage.addUnsignedInteger(skipped);
-				}
-
-				//append command
-				cmd.addDataToMessage(outgoingMessage);
-
-				//append has dump
-				outgoingMessage.addBoolean(false);
-
-				//todo - dump here
-
-				//append sync value
-				if(syncValue) {
-					outgoingMessage.addFinalUnsignedInteger(syncValue);
-				}
-
-				//send
+			if(!shouldDump) {
+				//fixed length message
 				p.send(outgoingMessage.array, {binary:true, mask:false});
+			}else {
+				//variable length message
+				p.send(outgoingMessage.constructMessage().array, {binary:true, mask:false});
+			}
+
+			//reset dump
+			if(shouldDump) {
+				p.dumpRequested = false;
 			}
 		}
 	}

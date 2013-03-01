@@ -94,7 +94,10 @@ rollbackclientengine.controllers.PlayController = function(options) {
 	//frame rate
 	this.frameRate = options.frameRate;
 
-	//received frame difference
+	//frame difference - # between perceived updates
+	this.frameDifference = 0;
+
+	//received frame difference - # frames between true sim and received command
 	if(this.shouldSendPlayer) {
 		//1 per player
 	}else {
@@ -102,8 +105,11 @@ rollbackclientengine.controllers.PlayController = function(options) {
 		this.receivedFrameDifference = 0;
 	}
 
-	//perceived frame difference
+	//perceived frame difference - # frames between true sim and perceived sim
 	this.perceivedFrameDifference = 0;
+
+	//sync frame difference - # frames between true sim and last sync value
+	this.syncFrameDifference = 0;
 
 	//timing
 	this.currentTime = null;
@@ -122,9 +128,6 @@ rollbackclientengine.controllers.PlayController = function(options) {
 
 	//render
 	this.shouldRender = false;
-
-	//frame difference - how many frames since last perceived update
-	this.frameDifference = 0;
 
 //NETWORKING
 
@@ -145,6 +148,7 @@ rollbackclientengine.controllers.PlayController = function(options) {
 
 	//sync
 	this.syncFrameRate = options.syncFrameRate;
+	this.syncFrameRateBitSize = rollbackgameengine.networking.calculateUnsignedIntegerBitSize(this.syncFrameRate);
 	this.syncCalc = new rollbackgameengine.sync.SyncCalculator();
 	this.serverSyncValues = new rollbackgameengine.datastructures.SinglyLinkedList();
 	this.clientSyncValues = new rollbackgameengine.datastructures.SinglyLinkedList();
@@ -211,10 +215,10 @@ rollbackclientengine.controllers.PlayController.prototype._syncClient = function
 		if(!this.dumpRequested && compare !== syncValue) {
 			//request
 			this.requestDump = true;
-		}else {
-			//pool
-			this._poolCommands();
 		}
+
+		//pool commands
+		this._poolCommands();
 	}else {
 		//add to list
 		this.clientSyncValues.add(syncValue);
@@ -227,6 +231,9 @@ rollbackclientengine.controllers.PlayController.prototype._syncServer = function
 		return;
 	}
 
+	//increment sync frame difference
+	this.syncFrameDifference += this.syncFrameRate;
+
 	//declare variables
 	var compare = this.clientSyncValues.pop();
 
@@ -235,10 +242,10 @@ rollbackclientengine.controllers.PlayController.prototype._syncServer = function
 		if(!this.dumpRequested && compare !== syncValue) {
 			//request
 			this.requestDump = true;
-		}else {
-			//pool
-			this._poolCommands();
 		}
+
+		//pool commands
+		this._poolCommands();
 	}else {
 		//add to list
 		this.serverSyncValues.add(syncValue);
@@ -248,6 +255,66 @@ rollbackclientengine.controllers.PlayController.prototype._syncServer = function
 //updates
 
 rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation = function() {
+	//declare variables
+	var p = null;
+	var c = null;
+
+	//loop through player commands
+	for(var i=0; i<this.playerCount; i++) {
+		//get player
+		p = this.players[i];
+
+		//get command node
+		c = p.trueCommand;
+		if(!c) {
+			//set command to head
+			c = p.commands.head;
+		}else {
+			//increment command
+			c = c.next;
+		}
+
+		//check command exists
+		if(this.shouldSendFrame) {
+			//todo - check against frame and handle if command does not exist
+
+			continue;
+		}else if(!c) {
+			//todo - remove this temporary check that shouldn't be needed
+			alert("p" + this.player + " lf" + leastFrame + " tf" + this.trueSimulation.frame + " > wtf no true command for " + i + " in 2 player mode?");
+			continue;
+		}
+
+		//execute command
+		this.trueSimulation.execute(i, c.obj);
+
+		//increment true command
+		p.trueCommand = c;
+	}
+
+	//update true simulation
+	this.trueSimulation.update();
+
+	//decrement frame differences
+	this.perceivedFrameDifference--;
+	this.receivedFrameDifference--;
+	this.syncFrameDifference--;
+
+	//increment counter
+	this.frameCounter++;
+
+	//sync
+	if(this.frameCounter === this.syncFrameRate) {
+		//reset counter
+		this.frameCounter = 0;
+
+		//sync value
+		this.trueSimulation.encode(this.syncCalc);
+	 	this._syncClient(this.syncCalc.calculateSyncValue());
+	}
+}
+
+rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulationStep = function() {
 	//todo - command lookahead check
 
 	//declare variables
@@ -265,65 +332,13 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
 		return;
 	}
 
-	//declare variables
-	var p = null;
-	var c = null;
-
 	//loop update true
 	do {
-		//loop through player commands
-		for(var i=0; i<this.playerCount; i++) {
-			//get player
-			p = this.players[i];
-
-			//get command node
-			c = p.trueCommand;
-			if(!c) {
-				//set command to head
-				c = p.commands.head;
-			}else {
-				//increment command
-				c = c.next;
-			}
-
-			//check command exists
-			if(this.shouldSendFrame) {
-				//todo - check against frame and handle if command does not exist
-
-				continue;
-			}else if(!c) {
-				//todo - remove this temporary check that shouldn't be needed
-				alert("p" + this.player + " lf" + leastFrame + " tf" + this.trueSimulation.frame + " > wtf no true command for " + i + " in 2 player mode?");
-				continue;
-			}
-
-			//execute command
-			this.trueSimulation.execute(i, c.obj);
-
-			//increment true command
-			p.trueCommand = c;
-		}
-
-		//update true simulation
-		this.trueSimulation.update();
+		//update
+		this.updateTrueSimulation();
 
 		//decrement
-		this.perceivedFrameDifference--;
-		this.receivedFrameDifference--;
 		leastDifference--;
-
-		//increment counter
-		this.frameCounter++;
-
-		//sync
-		if(this.frameCounter === this.syncFrameRate) {
-			//reset counter
-			this.frameCounter = 0;
-
-			//sync value
-			this.trueSimulation.encode(this.syncCalc);
-		 	this._syncClient(this.syncCalc.calculateSyncValue());
-		}
 	}while(leastDifference > 0);
 
 	//determine needed
@@ -342,6 +357,10 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
 	for(var i=0; i<this.playerCount; i++) {
 		this.players[i].perceivedCommand = this.players[i].trueCommand;
 	}
+
+	//declare variables
+	var p = null;
+	var c = null;
 
 	//loop update perceived back to current
 	while(this.perceivedFrameDifference > 0) {
@@ -386,7 +405,7 @@ rollbackclientengine.controllers.PlayController.prototype.updateTrueSimulation =
 	}
 };
 
-rollbackclientengine.controllers.PlayController.prototype.updatePerceivedSimulation = function() {
+rollbackclientengine.controllers.PlayController.prototype.updatePerceivedSimulationStep = function() {
 	//todo - command look ahead check
 
 	//valid check
@@ -453,7 +472,7 @@ rollbackclientengine.controllers.PlayController.prototype.updatePerceivedSimulat
 	}while(this.currentTime >= this.nextFrameTime);
 };
 
-rollbackclientengine.controllers.PlayController.prototype.sendInputs = function() {
+rollbackclientengine.controllers.PlayController.prototype.sendInputsStep = function() {
 	//valid check
 	if(!this.shouldRender) {
 		return;
@@ -520,6 +539,7 @@ rollbackclientengine.controllers.PlayController.prototype.sendInputs = function(
 	//append dump request
 	if(this.requestDump) {
 		this.requestDump = false;
+		this.dumpRequested = true;
 		message.addBoolean(true);
 	}else {
 		message.addBoolean(false);
@@ -551,9 +571,9 @@ rollbackclientengine.controllers.PlayController.prototype.update = function() {
 	this.currentTime = Date.now();
 
 	//updates
-	this.updateTrueSimulation();
-	this.updatePerceivedSimulation();
-	this.sendInputs();
+	this.updateTrueSimulationStep();
+	this.updatePerceivedSimulationStep();
+	this.sendInputsStep();
 };
 
 //render
@@ -591,8 +611,8 @@ rollbackclientengine.controllers.PlayController.prototype.render = function(canv
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 		//render
-		//this.trueSimulation.render(ctx); //debug
-		this.perceivedSimulation.render(ctx);
+		this.trueSimulation.render(ctx); //debug
+		//this.perceivedSimulation.render(ctx);
 
 		//debug
 		if(this.frameDifference > 1) {
@@ -703,18 +723,16 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
 		var c = this._getNewCommand();
 		c.loadFromMessage(incomingMessage);
 
-		//parse dump
-		if(incomingMessage.nextBoolean()) {
-			//todo
-
-			console.log("DUMP");
-		
-			//temp just update true
-			//this.trueSimulation.decode(incomingMessage);
+		//parse should dump
+		var shouldDump = incomingMessage.nextBoolean();
+		if(shouldDump) {
+			this.dumpRequested = false;
 		}
 
 		//parse sync value
-		this._syncServer(incomingMessage.finalUnsignedInteger());
+		if(!shouldDump) {
+			this._syncServer(incomingMessage.finalUnsignedInteger());
+		}
 
 		//declare variables
 		var p = null;
@@ -754,6 +772,20 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
 		}else {
 			//increment
 			this.receivedFrameDifference += receivedFrameDifference;
+		}
+
+		//handle dump
+		if(shouldDump) {
+			//parse dump difference
+			var dumpFrameDifference = this.syncFrameDifference + incomingMessage.nextUnsignedInteger(this.syncFrameRateBitSize);
+
+			//decode dump
+			this.trueSimulation.decode(incomingMessage);
+
+			//update decoded true to original true
+			for(var i=0; i<dumpFrameDifference; i++) {
+				this.updateTrueSimulation();
+			}
 		}
 	}
 };
