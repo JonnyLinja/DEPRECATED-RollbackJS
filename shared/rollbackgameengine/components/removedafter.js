@@ -8,6 +8,9 @@ rollbackgameengine.components.removedAfter = {
 	loadType : function(type, options) {
 		//add default properties
 		type._maxttl = options.frames;
+
+		//save bit size
+		type._ttlBitSize = rollbackgameengine.networking.calculateUnsignedIntegerBitSize(type._maxttl);
 	},
 
 	loadEntity : function(entity, options) {
@@ -36,10 +39,10 @@ rollbackgameengine.components.removedAfter = {
 	},
 
 	encode : function(entity, outgoingMessage) {
-		outgoingMessage.addUnsignedInteger(entity._ttl, rollbackgameengine.networking.calculateUnsignedIntegerBitSize(entity.type._maxttl));
+		outgoingMessage.addUnsignedInteger(entity._ttl, entity.type._ttlBitSize);
 	},
 
 	decode : function(entity, incomingMessage) {
-		entity._ttl = incomingMessage.nextUnsignedInteger(rollbackgameengine.networking.calculateUnsignedIntegerBitSize(entity.type._maxttl));
+		entity._ttl = incomingMessage.nextUnsignedInteger(entity.type._ttlBitSize);
 	}
 }
