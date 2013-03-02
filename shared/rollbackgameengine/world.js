@@ -377,7 +377,9 @@ rollbackgameengine.World.prototype._handleCollision = function(entity1, entity2)
 	entity2.didCollide(entity1);
 };
 
-rollbackgameengine.World.prototype.updateCollisions = function() {
+//UPDATE
+
+rollbackgameengine.World.prototype._updateCollisions = function() {
 	//declare variables
 	var currentCollision = this.collisions.head;
 
@@ -390,8 +392,6 @@ rollbackgameengine.World.prototype.updateCollisions = function() {
 		currentCollision = currentCollision.next;
 	}
 };
-
-//UPDATE
 
 rollbackgameengine.World.prototype._updateEntities = function() {
 	//declare variables
@@ -421,7 +421,7 @@ rollbackgameengine.World.prototype.update = function() {
 	//frame check
 	if(this.frame >= 0) {
 		//update collisions
-		this.updateCollisions();
+		this._updateCollisions();
 
 		//update lists
 		this.updateLists();
