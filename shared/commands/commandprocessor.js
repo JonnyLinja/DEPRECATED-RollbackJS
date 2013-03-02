@@ -26,7 +26,7 @@ shooter.commands.CommandProcessor.prototype.update = function(command) {
 
 		//math
 		var mag = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
-		var ratio = bullet.speed / mag;
+		var ratio = shooter.entities.bullet.speed / mag;
 
 		//set velocity
 		bullet.vx = dx * ratio;
