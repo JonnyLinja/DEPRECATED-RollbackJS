@@ -1157,15 +1157,25 @@ rollbackgameengine.datastructures.DoublyLinkedList.prototype.swap = function(o1,
 
 rollbackgameengine.components.frame = {
 	loadEntity : function(entity, options) {
+		//x
+		entity.__defineGetter__("x",  this._getX);
+		entity.__defineSetter__("x",  this._setX);
+		entity._x = 0;
+		entity._changedX = false;
+
+		//y
+		entity.__defineGetter__("y",  this._getY);
+		entity.__defineSetter__("y",  this._setY);
+		entity._y = 0;
+		entity._changedY = false;
+
 		//add default properties
-		entity.x = options.x;
-		entity.y = options.y;
 		entity.width = options.width;
 		entity.height = options.height;
 		entity.moveX = 0;
 		entity.moveY = 0;
 
-		//add get functions
+		//add get convenience functions
 		entity.__defineGetter__("right",  this._right);
 		entity.__defineGetter__("bottom",  this._bottom);
 		entity.__defineGetter__("centerX",  this._centerX);
@@ -1181,6 +1191,22 @@ rollbackgameengine.components.frame = {
 		entity.y += entity.moveY;
 		entity.moveX = 0;
 		entity.moveY = 0;
+	},
+
+	applyPrecision : function(entity) {
+		//problem - it kind of creates a bunch of garbage :(
+
+		//x
+		if(entity._changedX) {
+			entity._changedX = false;
+			entity._x = parseFloat(entity._x.toFixed(2));
+		}
+
+		//y
+		if(entity._changedY) {
+			entity._changedY = false;
+			entity._y = parseFloat(entity._y.toFixed(2));
+		}
 	},
 	
 	rollback : function(entity1, entity2) {
@@ -1201,6 +1227,28 @@ rollbackgameengine.components.frame = {
 	decode : function(entity, incomingMessage) {
 		entity.x = incomingMessage.nextSignedNumber(2);
 		entity.y = incomingMessage.nextSignedNumber(2);
+	},
+
+	//this refers to entity
+	_getX : function() {
+		return this._x;
+	},
+
+	//this refers to entity
+	_setX : function(value) {
+		this._x = value;
+		this._changedX = true;
+	},
+
+	//this refers to entity
+	_getY : function() {
+		return this._y;
+	},
+
+	//this refers to entity
+	_setY : function(value) {
+		this._y = value;
+		this._changedY = true;
 	},
 
 	//this refers to entity
@@ -1417,7 +1465,7 @@ rollbackgameengine.components.spritemap = {
 		offsetX *= entity.width;
 
 		//draw
-		ctx.drawImage(entity.image, offsetX, offsetY, entity.width, entity.height, Math.floor(entity.x), Math.floor(entity.y), entity.width, entity.height);
+		ctx.drawImage(entity.image, offsetX, offsetY, entity.width, entity.height, ~~(entity.x), ~~(entity.y), entity.width, entity.height);
 	},
 
 	rollback : function(entity1, entity2) {
@@ -1779,6 +1827,28 @@ rollbackgameengine.Entity.prototype.update = function() {
 	}
 };
 
+rollbackgameengine.Entity.prototype.applyPrecision = function() {
+	//components
+	if(this.type._precisionComponents) {
+		//get top most element
+		var current = this.type._precisionComponents.head;
+
+		//loop through list
+		while (current) {
+			//precision
+			current.obj.applyPrecision(this);
+
+			//increment
+			current = current.next;
+		}
+	}
+
+	//type
+	if(this.type.applyPrecision) {
+		this.type.applyPrecision(this);
+	}
+};
+
 rollbackgameengine.Entity.prototype.render = function(ctx) {
 	//components
 	if(this.type._renderComponents) {
@@ -2009,6 +2079,17 @@ rollbackgameengine.World = function(options) {
 
 					//add
 					type._updateComponents.add(component);
+				}
+
+				//precision
+				if(component.applyPrecision) {
+					//create list
+					if(!type._precisionComponents) {
+						type._precisionComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
+					}
+
+					//add
+					type._precisionComponents.add(component);
 				}
 
 				//render
@@ -2323,9 +2404,38 @@ rollbackgameengine.World.prototype.update = function() {
 		//update lists
 		this.updateLists();
 	}
+
+	//precision
+	this.applyPrecision();
 	
 	//update frame
 	this.frame++;
+};
+
+//PRECISION
+
+rollbackgameengine.World.prototype.applyPrecision = function() {
+	//declare variables
+	var currentOuterList = this.entitiesList.head;
+	var currentInnerList = null;
+
+	//loop through tpes
+	while(currentOuterList) {
+		//set head
+		currentInnerList = currentOuterList.head;
+
+		//loop through entities
+		while(currentInnerList) {
+			//precision
+			currentInnerList.applyPrecision();
+
+			//increment
+			currentInnerList = currentInnerList.nextEntity;
+		}
+
+		//increment
+		currentOuterList = currentOuterList.nextEntityList;
+	}
 };
 
 //RENDER
