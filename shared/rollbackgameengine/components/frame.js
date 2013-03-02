@@ -35,10 +35,10 @@ rollbackgameengine.components.frame = {
 		//rollback values
 		entity1.x = entity2.x;
 		entity1.y = entity2.y;
-		entity1.width = entity2.width;
-		entity1.height = entity2.height;
-		entity1.moveX = entity2.moveX;
-		entity1.moveY = entity2.moveY;
+		//entity1.width = entity2.width;
+		//entity1.height = entity2.height;
+		//entity1.moveX = entity2.moveX;
+		//entity1.moveY = entity2.moveY;
 	},
 
 	encode : function(entity, outgoingMessage) {
