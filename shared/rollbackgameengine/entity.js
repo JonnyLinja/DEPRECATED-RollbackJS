@@ -78,6 +78,28 @@ rollbackgameengine.Entity.prototype.update = function() {
 	}
 };
 
+rollbackgameengine.Entity.prototype.applyPrecision = function() {
+	//components
+	if(this.type._precisionComponents) {
+		//get top most element
+		var current = this.type._precisionComponents.head;
+
+		//loop through list
+		while (current) {
+			//precision
+			current.obj.applyPrecision(this);
+
+			//increment
+			current = current.next;
+		}
+	}
+
+	//type
+	if(this.type.applyPrecision) {
+		this.type.applyPrecision(this);
+	}
+};
+
 rollbackgameengine.Entity.prototype.render = function(ctx) {
 	//components
 	if(this.type._renderComponents) {

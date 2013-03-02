@@ -143,6 +143,17 @@ rollbackgameengine.World = function(options) {
 					type._updateComponents.add(component);
 				}
 
+				//precision
+				if(component.applyPrecision) {
+					//create list
+					if(!type._precisionComponents) {
+						type._precisionComponents = new rollbackgameengine.datastructures.SinglyLinkedList();
+					}
+
+					//add
+					type._precisionComponents.add(component);
+				}
+
 				//render
 				if(component.render) {
 					//create list
@@ -455,9 +466,38 @@ rollbackgameengine.World.prototype.update = function() {
 		//update lists
 		this.updateLists();
 	}
+
+	//precision
+	this.applyPrecision();
 	
 	//update frame
 	this.frame++;
+};
+
+//PRECISION
+
+rollbackgameengine.World.prototype.applyPrecision = function() {
+	//declare variables
+	var currentOuterList = this.entitiesList.head;
+	var currentInnerList = null;
+
+	//loop through tpes
+	while(currentOuterList) {
+		//set head
+		currentInnerList = currentOuterList.head;
+
+		//loop through entities
+		while(currentInnerList) {
+			//precision
+			currentInnerList.applyPrecision();
+
+			//increment
+			currentInnerList = currentInnerList.nextEntity;
+		}
+
+		//increment
+		currentOuterList = currentOuterList.nextEntityList;
+	}
 };
 
 //RENDER

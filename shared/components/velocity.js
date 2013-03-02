@@ -10,9 +10,15 @@ shooter.components.velocity = {
 	},
 
 	loadEntity : function(entity, options) {
-		//set velocity values
-		entity.vx = 0;
-		entity.vy = 0;
+		//vx
+		entity.__defineGetter__("vx",  this._getVx);
+		entity.__defineSetter__("vx",  this._setVx);
+		entity._vx = 0;
+
+		//vy
+		entity.__defineGetter__("vy",  this._getVy);
+		entity.__defineSetter__("vy",  this._setVy);
+		entity._vy = 0;
 	},
 
 	update : function(entity) {
@@ -23,8 +29,8 @@ shooter.components.velocity = {
 
 	rollback : function(entity1, entity2) {
 		//rollback values
-		entity1.vx = entity2.vx;
-		entity1.vy = entity2.vy;
+		entity1._vx = entity2._vx;
+		entity1._vy = entity2._vy;
 	},
 
 	encode : function(entity, outgoingMessage) {
@@ -33,7 +39,27 @@ shooter.components.velocity = {
 	},
 
 	decode : function(entity, incomingMessage) {
-		entity.vx = incomingMessage.nextSignedNumber(2);
-		entity.vy = incomingMessage.nextSignedNumber(2);
+		entity._vx = incomingMessage.nextSignedNumber(2);
+		entity._vy = incomingMessage.nextSignedNumber(2);
+	},
+
+	//this refers to entity
+	_getVx : function() {
+		return this._vx;
+	},
+
+	//this refers to entity
+	_setVx : function(value) {
+		this._vx = parseFloat(value.toFixed(2));
+	},
+
+	//this refers to entity
+	_getVy : function() {
+		return this._vy;
+	},
+
+	//this refers to entity
+	_setVy : function(value) {
+		this._vy = parseFloat(value.toFixed(2));
 	}
 }

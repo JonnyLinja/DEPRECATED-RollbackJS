@@ -30,6 +30,11 @@ rollbackgameengine.components.frame = {
 		entity.moveX = 0;
 		entity.moveY = 0;
 	},
+
+	applyPrecision : function(entity) {
+		//todo - maybe apply precision here if needed
+		//problem is that it will create a lot of garbage
+	},
 	
 	rollback : function(entity1, entity2) {
 		//rollback values
