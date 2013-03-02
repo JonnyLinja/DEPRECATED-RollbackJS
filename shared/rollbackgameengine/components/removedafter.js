@@ -1,6 +1,7 @@
 
 //==================================================//
 // rollbackgameengine/components/removedafter.js
+// todo - add max ttl bit size to type
 //==================================================//
 
 rollbackgameengine.components.removedAfter = {

@@ -9,6 +9,8 @@
 // for now just don't have that system, just use the immediate start
 // figure it out later
 //
+// todo - restructure class again to use more _ for private functions
+//
 //==================================================//
 
 //eventually pass canvas container in here
@@ -809,6 +811,7 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
 					//set player
 					p = this.players[j];
 
+					//command
 					if(!p.trueCommand) {
 						//set to beginning
 						p.trueCommand = p.commands.head;
@@ -825,6 +828,8 @@ rollbackclientengine.controllers.PlayController.prototype.onReceivedData = funct
 
 			//temp - increment frame
 			this.trueSimulation.frame += dumpFrameDifference;
+
+			console.log("true sim post dump frame " + this.trueSimulation.frame);
 
 			//reset requested
 			this.dumpRequested = false;

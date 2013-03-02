@@ -59,7 +59,7 @@ shooter.commands.CommandProcessor.prototype.update = function(command) {
 		this.player.y -= 5;
 		isMoving = true;
 	}else if(command.s && !command.w) {
-		this.player.y += 5;
+		this.player.y += 4;
 		isMoving = true;
 	}
 

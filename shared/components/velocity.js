@@ -21,5 +21,15 @@ shooter.components.velocity = {
 		//rollback values
 		entity1.vx = entity2.vx;
 		entity1.vy = entity2.vy;
+	},
+
+	encode : function(entity, outgoingMessage) {
+		outgoingMessage.addSignedNumber(entity.vx, 2);
+		outgoingMessage.addSignedNumber(entity.vy, 2);
+	},
+
+	decode : function(entity, incomingMessage) {
+		entity.vx = incomingMessage.nextSignedNumber(2);
+		entity.vy = incomingMessage.nextSignedNumber(2);
 	}
 }

@@ -28,7 +28,7 @@ var controller = new rollbackclientengine.controllers.PlayController({
 	Simulation: shooter.GameSimulation,
 	Command: shooter.commands.Command,
 	frameSkipBitSize: 4,
-	syncFrameRate: 30
+	syncFrameRate: 10 //30
 });
 //var controller = new rollbackclientengine.controllers.PlayController({ url:'ws://shooter-5551.onmodulus.net', Simulation:shooter.GameSimulation, Command:shooter.commands.Command, frameSkipBitSize:4 }); //live
 

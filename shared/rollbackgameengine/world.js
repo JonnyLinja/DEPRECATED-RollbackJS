@@ -559,7 +559,7 @@ rollbackgameengine.World.prototype.encode = function(outgoingMessage) {
 	}
 };
 
-//todo - have this actually create/remove stuff
+//todo - create and recycle need to NOT activate addedToWorld and removedFromWorld
 rollbackgameengine.World.prototype.decode = function(incomingMessage) {
 	//declare variables
 	var currentOuterList = this.entitiesList.head;
@@ -616,8 +616,9 @@ rollbackgameengine.World.prototype.decode = function(incomingMessage) {
 					}else {
 						//new
 
-						//create new
+						//create new - todo fix this as doing it this way can cause an unwanted addedToWorld call
 						temp = this.addEntity(currentOuterList.type);
+						this.updateLists(); //temp hack - not good enough since if addedToWorld creates another entity, this will cause it
 
 						//decode
 						temp.decode(incomingMessage);

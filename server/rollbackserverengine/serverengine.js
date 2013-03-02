@@ -290,6 +290,8 @@ Room.prototype.handleMessage = function(player, incomingMessage) {
 
 				//encode
 				this.simulation.encode(outgoingMessage);
+
+				console.log(i + " sent dump of frame " + this.simulation.frame);
 			}
 
 			//append sync value
