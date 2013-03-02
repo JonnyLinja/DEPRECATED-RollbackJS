@@ -59,8 +59,8 @@ rollbackgameengine.components.frame = {
 	
 	rollback : function(entity1, entity2) {
 		//rollback values
-		entity1.x = entity2.x;
-		entity1.y = entity2.y;
+		entity1._x = entity2._x;
+		entity1._y = entity2._y;
 		//entity1.width = entity2.width;
 		//entity1.height = entity2.height;
 		//entity1.moveX = entity2.moveX;
@@ -73,8 +73,8 @@ rollbackgameengine.components.frame = {
 	},
 
 	decode : function(entity, incomingMessage) {
-		entity.x = incomingMessage.nextSignedNumber(2);
-		entity.y = incomingMessage.nextSignedNumber(2);
+		entity._x = incomingMessage.nextSignedNumber(2);
+		entity._y = incomingMessage.nextSignedNumber(2);
 	},
 
 	//this refers to entity
