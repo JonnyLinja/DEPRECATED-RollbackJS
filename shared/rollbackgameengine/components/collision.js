@@ -27,6 +27,14 @@ rollbackgameengine.components.collision = {
 		entity1.collidable = entity2.collidable;
 	},
 
+	encode : function(entity, outgoingMessage) {
+		outgoingMessage.addBoolean(entity.collidable);
+	},
+
+	decode : function(entity, incomingMessage) {
+		entity.collidable = incomingMessage.nextBoolean();
+	},
+
 	//this refers to type
 	_registerCollision : function(type, component) {
 		//check loaded
