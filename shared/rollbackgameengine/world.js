@@ -7,12 +7,28 @@ rollbackgameengine.World = function(options) {
 	//frame
 	this.frame = 0;
 
+	//factory
+	this.factory = options.factory;
+
 	//declare list of entities
 	this.entitiesList = new rollbackgameengine.datastructures.DoublyLinkedList("prevEntityList", "nextEntityList"); //used for traversal in update/render/rollback
 	this.entitiesDictionary = {}; //used for quick lookup in add/recycle/remove
 
 	//collisions
-	this.collisions = new rollbackgameengine.datastructures.SinglyLinkedList(); //types
+	var shouldCreateCollisionList = true;
+	if(this.factory) {
+		//store collisions in factory
+		if(!this.factory._collisions) {
+			this.factory._collisions = new rollbackgameengine.datastructures.SinglyLinkedList(); //types
+			var collisionList = this.factory._collisions;
+		}else {
+			shouldCreateCollisionList = false;
+		}
+	}else {
+		//store collisions in world
+		this.collisions = new rollbackgameengine.datastructures.SinglyLinkedList(); //types
+		var collisionList = this.collisions;
+	}
 
 	//helper linked lists
 	this.toAdd = new rollbackgameengine.datastructures.SinglyLinkedList();
@@ -166,7 +182,7 @@ rollbackgameengine.World = function(options) {
 		}
 
 		//add collisions if able
-		if(typeof type._collisionMap !== 'undefined') {
+		if(shouldCreateCollisionList && typeof type._collisionMap !== 'undefined') {
 			//loop through types
 			current = this.entitiesList.head;
 			while(current) {
@@ -176,7 +192,7 @@ rollbackgameengine.World = function(options) {
 					found = false;
 
 					//loop through collisions
-					currentCollision = this.collisions.head;
+					currentCollision = collisionList.head;
 					while(currentCollision) {
 						//check found
 						if(currentCollision.obj.type1 === type && currentCollision.obj.type2 === current.type || currentCollision.obj.type1 === current.type && currentCollision.obj.type2 === type) {
@@ -190,7 +206,7 @@ rollbackgameengine.World = function(options) {
 
 					//add collisions
 					if(!found) {
-						this.collisions.add({type1:type, type2:current.type});
+						collisionList.add({type1:type, type2:current.type});
 					}
 				}
 
@@ -381,7 +397,14 @@ rollbackgameengine.World.prototype._handleCollision = function(entity1, entity2)
 
 rollbackgameengine.World.prototype._updateCollisions = function() {
 	//declare variables
-	var currentCollision = this.collisions.head;
+	var currentCollision = null;
+	if(this.factory) {
+		//use factory list
+		currentCollision = this.factory._collisions.head;
+	}else {
+		//use world list
+		currentCollision = this.collisions.head;
+	}
 
 	//loop through collisions
 	while(currentCollision) {
