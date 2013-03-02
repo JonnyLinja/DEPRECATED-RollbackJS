@@ -108,7 +108,7 @@ rollbackgameengine.components.spritemap = {
 		offsetX *= entity.width;
 
 		//draw
-		ctx.drawImage(entity.image, offsetX, offsetY, entity.width, entity.height, Math.floor(entity.x), Math.floor(entity.y), entity.width, entity.height);
+		ctx.drawImage(entity.image, offsetX, offsetY, entity.width, entity.height, ~~(entity.x), ~~(entity.y), entity.width, entity.height);
 	},
 
 	rollback : function(entity1, entity2) {
