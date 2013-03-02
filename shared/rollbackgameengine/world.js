@@ -274,14 +274,14 @@ rollbackgameengine.World.prototype.updateLists = function() {
 		//pop
 		entity = this.toAdd.pop();
 
-		//set world
-		entity.world = this;
-
 		//add to list
 		this.entitiesDictionary[entity.type].add(entity);
 
-		//addedToWorld
-		entity.addedToWorld();
+		//world
+		if(!entity.world) {
+			entity.world = this;
+			entity.addedToWorld();
+		}
 	}
 
 	//recycle
@@ -295,11 +295,11 @@ rollbackgameengine.World.prototype.updateLists = function() {
 		//add to pool
 		rollbackgameengine.pool.add(entity.type, entity);
 
-		//removedFromWorld
-		entity.removedFromWorld();
-
-		//remove world
-		entity.world = null;
+		//world
+		if(entity.world) {
+			entity.removedFromWorld();
+			entity.world = null;
+		}
 	}
 
 	//remove
@@ -592,7 +592,6 @@ rollbackgameengine.World.prototype.encode = function(outgoingMessage) {
 	}
 };
 
-//todo - create and recycle need to NOT activate addedToWorld and removedFromWorld
 rollbackgameengine.World.prototype.decode = function(incomingMessage) {
 	//decode processors
 	for(var i=0, j=this.processors.length; i<j; i++) {
@@ -633,6 +632,7 @@ rollbackgameengine.World.prototype.decode = function(incomingMessage) {
 				while(currentInnerList) {
 					//recycle
 					this.recycleEntity(currentInnerList);
+					currentInnerList.world = null; //hack prevents removedFromWorld call
 
 					//increment
 					currentInnerList = currentInnerList.nextEntity;
@@ -656,9 +656,9 @@ rollbackgameengine.World.prototype.decode = function(incomingMessage) {
 					}else {
 						//new
 
-						//create new - todo fix this as doing it this way can cause an unwanted addedToWorld call
+						//create new
 						temp = this.addEntity(currentOuterList.type);
-						this.updateLists(); //temp hack - not good enough since if addedToWorld creates another entity, this will cause it
+						temp.world = this; //hack prevents addedToWorld call
 
 						//decode
 						temp.decode(incomingMessage);
@@ -669,6 +669,7 @@ rollbackgameengine.World.prototype.decode = function(incomingMessage) {
 				while(currentInnerList) {
 					//recycle
 					this.recycleEntity(currentInnerList);
+					currentInnerList.world = null; //hack prevents removedFromWorld call
 
 					//increment
 					currentInnerList = currentInnerList.nextEntity;
