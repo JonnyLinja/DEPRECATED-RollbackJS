@@ -7,7 +7,7 @@ var rollbackserverengine = {};
 module.exports = rollbackserverengine;
 
 //options
-var SimulationObject = null;
+var factory = null;
 var CommandObject = null;
 var playerCount = null;
 var syncFrameRate = null;
@@ -32,8 +32,8 @@ var Room = function() {
 	//players
 	this.players = [];
 
-	//simulation
-	this.simulation = new SimulationObject();
+	//world
+	this.world = factory.create();
 
 	//counter
 	this.frameCounter = 0;
@@ -139,11 +139,11 @@ Room.prototype.update = function() {
 	while(this.canUpdate()) {
 		//execute commands
 		for(var i=0, j=this.players.length; i<j; i++) {
-			this.simulation.execute(i, this.players[i].commands.pop());
+			this.world.execute(i, this.players[i].commands.pop());
 		}
 
 		//update
-		this.simulation.update();
+		this.world.update();
 
 		//increment counter
 		this.frameCounter++;
@@ -154,14 +154,14 @@ Room.prototype.update = function() {
 			this.frameCounter = 0;
 
 			//calculate sync value
-			this.simulation.encode(syncCalc);
+			this.world.encode(syncCalc);
 		 	value = syncCalc.calculateSyncValue();
 
 		 	//save value
 		 	for(var i=0, j=this.players.length; i<j; i++) {
 		 		this.players[i].syncValues.add(value);
 			}
-			console.log("calculated sync value for " + this.simulation.frame + " to be " + value);
+			console.log("calculated sync value for " + this.world.frame + " to be " + value);
 		}
 	}
 };
@@ -289,9 +289,9 @@ Room.prototype.handleMessage = function(player, incomingMessage) {
 				outgoingMessage.addUnsignedInteger(this.frameCounter, syncFrameRateBitSize);
 
 				//encode
-				this.simulation.encode(outgoingMessage);
+				this.world.encode(outgoingMessage);
 
-				console.log(i + " sent dump of frame " + this.simulation.frame);
+				console.log(i + " sent dump of frame " + this.world.frame);
 			}
 
 			//append sync value
@@ -332,7 +332,7 @@ Room.prototype.close = function() {
 //start
 rollbackserverengine.start = function(options) {
 	//save variables - todo, add default values
-	SimulationObject = options.Simulation;
+	factory = options.factory;
 	CommandObject = options.Command;
 	playerCount = options.playerCount;
 	syncFrameRate = options.syncFrameRate;

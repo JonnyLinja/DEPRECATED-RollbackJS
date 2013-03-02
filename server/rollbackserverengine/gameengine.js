@@ -1616,6 +1616,7 @@ rollbackgameengine.components.preventOverlap = {
 
 //==================================================//
 // rollbackgameengine/components/removedafter.js
+// todo - add max ttl bit size to type
 //==================================================//
 
 rollbackgameengine.components.removedAfter = {
@@ -1876,6 +1877,9 @@ rollbackgameengine.World = function(options) {
 	this.toRecycle = new rollbackgameengine.datastructures.SinglyLinkedList();
 	this.toRemove = new rollbackgameengine.datastructures.SinglyLinkedList();
 
+	//processors
+	this.processors = [];
+
 	//type tracking variables
 	var type = null;
 	var list = null;
@@ -2055,6 +2059,14 @@ rollbackgameengine.World = function(options) {
 	}
 };
 
+//EXECUTE
+
+rollbackgameengine.World.prototype.execute = function(player, command) {
+	this.processors[player].update(command);
+};
+
+//ENTITIES
+
 //private
 //pools automatically
 rollbackgameengine.World.prototype._createEntity = function(type) {
@@ -2164,7 +2176,7 @@ rollbackgameengine.World.prototype.updateLists = function() {
 	}
 };
 
-//consider having a collideFirst function
+//COLLISIONS - consider having a collide first function
 
 rollbackgameengine.World.prototype.collides = function(entity1, entity2) {
 	if(entity1 !== entity2 && entity1.collidable && entity2.collidable &&
@@ -2237,7 +2249,9 @@ rollbackgameengine.World.prototype.updateCollisions = function() {
 	}
 };
 
-rollbackgameengine.World.prototype.updateEntities = function() {
+//UPDATE
+
+rollbackgameengine.World.prototype._updateEntities = function() {
 	//declare variables
 	var currentOuterList = this.entitiesList.head;
 	var currentInnerList = null;
@@ -2271,7 +2285,7 @@ rollbackgameengine.World.prototype.update = function() {
 		this.updateLists();
 
 		//update entities
-		this.updateEntities();
+		this._updateEntities();
 
 		//update lists
 		this.updateLists();
@@ -2280,6 +2294,8 @@ rollbackgameengine.World.prototype.update = function() {
 	//update frame
 	this.frame++;
 };
+
+//RENDER
 
 rollbackgameengine.World.prototype.render = function(ctx) {
 	//declare variables
@@ -2305,7 +2321,16 @@ rollbackgameengine.World.prototype.render = function(ctx) {
 	}
 };
 
+//ROLLBACK
+
 rollbackgameengine.World.prototype.rollback = function(world) {
+	//rollback processors
+	for(var i=0, j=this.processors.length; i<j; i++) {
+		if(this.processors[i].rollback) {
+			this.processors[i].rollback(world.processors[i]);
+		}
+	}
+
 	//declare list variables
 	var myCurrentOuterList = this.entitiesList.head;
 	var otherCurrentOuterList = world.entitiesList.head;
@@ -2365,7 +2390,16 @@ rollbackgameengine.World.prototype.rollback = function(world) {
 	this.frame = world.frame;
 };
 
+//SYNC
+
 rollbackgameengine.World.prototype.encode = function(outgoingMessage) {
+	//encode processors
+	for(var i=0, j=this.processors.length; i<j; i++) {
+		if(this.processors[i].encode) {
+			this.processors[i].encode(outgoingMessage);
+		}
+	}
+
 	//declare variables
 	var currentOuterList = this.entitiesList.head;
 	var currentInnerList = null;
@@ -2416,8 +2450,15 @@ rollbackgameengine.World.prototype.encode = function(outgoingMessage) {
 	}
 };
 
-//todo - have this actually create/remove stuff
+//todo - create and recycle need to NOT activate addedToWorld and removedFromWorld
 rollbackgameengine.World.prototype.decode = function(incomingMessage) {
+	//decode processors
+	for(var i=0, j=this.processors.length; i<j; i++) {
+		if(this.processors[i].decode) {
+			this.processors[i].decode(incomingMessage);
+		}
+	}
+
 	//declare variables
 	var currentOuterList = this.entitiesList.head;
 	var currentInnerList = null;
@@ -2473,8 +2514,9 @@ rollbackgameengine.World.prototype.decode = function(incomingMessage) {
 					}else {
 						//new
 
-						//create new
+						//create new - todo fix this as doing it this way can cause an unwanted addedToWorld call
 						temp = this.addEntity(currentOuterList.type);
+						this.updateLists(); //temp hack - not good enough since if addedToWorld creates another entity, this will cause it
 
 						//decode
 						temp.decode(incomingMessage);

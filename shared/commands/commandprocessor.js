@@ -3,22 +3,14 @@
 // commands/commandprocessor.js
 //==================================================//
 
-shooter.commands.CommandProcessor = function(simulation, player) {
-	//simulation
-	this.simulation = simulation;
+shooter.commands.CommandProcessor = function(world, player) {
+	//world
+	this.world = world;
 
 	//player
 	this.player = player;
 
-	//keyboard
-	this.w = false;
-	this.a = false;
-	this.s = false;
-	this.d = false;
-
 	//mouse
-	this.mouseX = 0;
-	this.mouseY = 0;
 	this.mouseDown = false;
 };
 
@@ -30,7 +22,7 @@ shooter.commands.CommandProcessor.prototype.update = function(command) {
 	//click
 	if(!this.mouseDown && command.mouseDown) {
 		//create bullet
-		var bullet = this.simulation.addEntity(shooter.entities.bullet);
+		var bullet = this.world.addEntity(shooter.entities.bullet);
 
 		//math
 		var mag = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
@@ -42,7 +34,7 @@ shooter.commands.CommandProcessor.prototype.update = function(command) {
 
 		//position bullet - prevent from shooting yourself
 		bullet.center(this.player.centerX, this.player.centerY);
-		while(this.simulation.collides(this.player, bullet)) {
+		while(this.world.collides(this.player, bullet)) {
 			bullet.x += bullet.vx;
 			bullet.y += bullet.vy;
 		}
@@ -163,4 +155,12 @@ shooter.commands.CommandProcessor.prototype.update = function(command) {
 shooter.commands.CommandProcessor.prototype.rollback = function(p) {
 	//rollback values
 	this.mouseDown = p.mouseDown;
+};
+
+shooter.commands.CommandProcessor.prototype.encode = function(outgoingMessage) {
+	outgoingMessage.addBoolean(this.mouseDown);
+};
+
+shooter.commands.CommandProcessor.prototype.decode = function(incomingMessage) {
+	this.mouseDown = incomingMessage.nextBoolean();
 };

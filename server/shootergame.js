@@ -21,11 +21,11 @@ if(typeof window === 'undefined') {
 /*
 type shared\shooter.js shared\components\HP.js shared\components\velocity.js shared\components\removeoffscreen.js shared\components\damagedoncollision.js
 shared\components\explodesoncollision.js shared\entities\alien.js shared\entities\human.js shared\entities\bullet.js shared\entities\explosion.js
-shared\entities\wall.js shared\gamesimulation.js shared\commands\command.js shraed\commands\commandprocessor.js > shootergame.js
+shared\entities\wall.js shared\gamefactory.js shared\commands\command.js shraed\commands\commandprocessor.js > shootergame.js
 */
 
 //combined script
-//type shared\shooter.js shared\components\HP.js shared\components\velocity.js shared\components\removeoffscreen.js shared\components\damagedoncollision.js shared\components\explodesoncollision.js shared\entities\alien.js shared\entities\human.js shared\entities\bullet.js shared\entities\explosion.js shared\entities\wall.js shared\gamesimulation.js shared\commands\command.js shared\commands\commandprocessor.js > shootergame.js
+//type shared\shooter.js shared\components\HP.js shared\components\velocity.js shared\components\removeoffscreen.js shared\components\damagedoncollision.js shared\components\explodesoncollision.js shared\entities\alien.js shared\entities\human.js shared\entities\bullet.js shared\entities\explosion.js shared\entities\wall.js shared\gamefactory.js shared\commands\command.js shared\commands\commandprocessor.js > shootergame.js
 
 //==================================================//
 // components/hp.js
@@ -251,81 +251,56 @@ shooter.entities.wall = {
 };
 
 //==================================================//
-// gamesimulation.js
+// gamefactory.js
+//
+// If player has multiple pre game options, like character select
+// then do not make it a singleton, make it a class
 //==================================================//
 
-shooter.GameSimulation = function() {
-	//super
-	rollbackgameengine.World.call(this, {types:[shooter.entities.bullet, shooter.entities.alien, shooter.entities.human, shooter.entities.explosion, shooter.entities.wall]});
+shooter.gameFactory = {
+	create : function() {
+		//create world
+		var world = new rollbackgameengine.World({types:[shooter.entities.bullet, shooter.entities.alien, shooter.entities.human, shooter.entities.explosion, shooter.entities.wall]});
 
-	//walls
-	var top = this.addEntity(shooter.entities.wall);
-	top.x = -800;
-	top.y = -640;
-	top.width = 2400;
-	top.height = 640;
-	var bottom = this.addEntity(shooter.entities.wall);
-	bottom.x = -800;
-	bottom.y = 640;
-	bottom.width = 2400;
-	bottom.height = 640;
-	var left = this.addEntity(shooter.entities.wall);
-	left.x = -800;
-	left.y = 0;
-	left.width = 800;
-	left.height = 640;
-	var right = this.addEntity(shooter.entities.wall);
-	right.x = 800;
-	right.y = 0;
-	right.width = 800;
-	right.height = 640;
+		//walls
+		var top = world.addEntity(shooter.entities.wall);
+		top.x = -800;
+		top.y = -640;
+		top.width = 2400;
+		top.height = 640;
+		var bottom = world.addEntity(shooter.entities.wall);
+		bottom.x = -800;
+		bottom.y = 640;
+		bottom.width = 2400;
+		bottom.height = 640;
+		var left = world.addEntity(shooter.entities.wall);
+		left.x = -800;
+		left.y = 0;
+		left.width = 800;
+		left.height = 640;
+		var right = world.addEntity(shooter.entities.wall);
+		right.x = 800;
+		right.y = 0;
+		right.width = 800;
+		right.height = 640;
 
-	//p1
-	this.p1 = this.addEntity(shooter.entities.human);
-	this.p1.x = 50;
-	this.p1.y = 50;
-
-	//p2
-	this.p2 = this.addEntity(shooter.entities.alien);
-	this.p2.x = 600;
-	this.p2.y = 300;
-
-	//processor1
-	this.processor1 = new shooter.commands.CommandProcessor(this, this.p1);
-
-	//processor2
-	this.processor2 = new shooter.commands.CommandProcessor(this, this.p2);
-};
-
-//inheritance
-
-shooter.GameSimulation.prototype = function() {
-  function F() {};
-  F.prototype = rollbackgameengine.World.prototype;
-  return new F;
-}();
-
-//execute
-
-shooter.GameSimulation.prototype.execute = function(player, command) {
-	if(player === 0) {
 		//p1
-		this.processor1.update(command);
-	}else if(player === 1) {
+		var p1 = world.addEntity(shooter.entities.human);
+		p1.x = 50;
+		p1.y = 50;
+
 		//p2
-		this.processor2.update(command);
+		var p2 = world.addEntity(shooter.entities.alien);
+		p2.x = 600;
+		p2.y = 300;
+
+		//processors
+		world.processors[0] = new shooter.commands.CommandProcessor(world, p1);
+		world.processors[1] = new shooter.commands.CommandProcessor(world, p2);
+
+		//return
+		return world;
 	}
-};
-
-//rollback
-
-shooter.GameSimulation.prototype.rollback = function(gamesimulation) {
-	//rollback processors
-	this.processor1.rollback(gamesimulation.processor1);
-	this.processor2.rollback(gamesimulation.processor2);
-
-	//super
-	rollbackgameengine.World.prototype.rollback.call(this, gamesimulation);
 };
 
 //==================================================//
@@ -400,22 +375,14 @@ shooter.commands.Command.prototype.toString = function() {
 // commands/commandprocessor.js
 //==================================================//
 
-shooter.commands.CommandProcessor = function(simulation, player) {
-	//simulation
-	this.simulation = simulation;
+shooter.commands.CommandProcessor = function(world, player) {
+	//world
+	this.world = world;
 
 	//player
 	this.player = player;
 
-	//keyboard
-	this.w = false;
-	this.a = false;
-	this.s = false;
-	this.d = false;
-
 	//mouse
-	this.mouseX = 0;
-	this.mouseY = 0;
 	this.mouseDown = false;
 };
 
@@ -427,7 +394,7 @@ shooter.commands.CommandProcessor.prototype.update = function(command) {
 	//click
 	if(!this.mouseDown && command.mouseDown) {
 		//create bullet
-		var bullet = this.simulation.addEntity(shooter.entities.bullet);
+		var bullet = this.world.addEntity(shooter.entities.bullet);
 
 		//math
 		var mag = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
@@ -439,7 +406,7 @@ shooter.commands.CommandProcessor.prototype.update = function(command) {
 
 		//position bullet - prevent from shooting yourself
 		bullet.center(this.player.centerX, this.player.centerY);
-		while(this.simulation.collides(this.player, bullet)) {
+		while(this.world.collides(this.player, bullet)) {
 			bullet.x += bullet.vx;
 			bullet.y += bullet.vy;
 		}
@@ -560,4 +527,12 @@ shooter.commands.CommandProcessor.prototype.update = function(command) {
 shooter.commands.CommandProcessor.prototype.rollback = function(p) {
 	//rollback values
 	this.mouseDown = p.mouseDown;
+};
+
+shooter.commands.CommandProcessor.prototype.encode = function(outgoingMessage) {
+	outgoingMessage.addBoolean(this.mouseDown);
+};
+
+shooter.commands.CommandProcessor.prototype.decode = function(incomingMessage) {
+	this.mouseDown = incomingMessage.nextBoolean();
 };
