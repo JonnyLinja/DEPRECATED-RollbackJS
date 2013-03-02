@@ -1187,10 +1187,10 @@ rollbackgameengine.components.frame = {
 		//rollback values
 		entity1.x = entity2.x;
 		entity1.y = entity2.y;
-		entity1.width = entity2.width;
-		entity1.height = entity2.height;
-		entity1.moveX = entity2.moveX;
-		entity1.moveY = entity2.moveY;
+		//entity1.width = entity2.width;
+		//entity1.height = entity2.height;
+		//entity1.moveX = entity2.moveX;
+		//entity1.moveY = entity2.moveY;
 	},
 
 	encode : function(entity, outgoingMessage) {
@@ -1258,6 +1258,14 @@ rollbackgameengine.components.collision = {
 		entity1.collidable = entity2.collidable;
 	},
 
+	encode : function(entity, outgoingMessage) {
+		outgoingMessage.addBoolean(entity.collidable);
+	},
+
+	decode : function(entity, incomingMessage) {
+		entity.collidable = incomingMessage.nextBoolean();
+	},
+
 	//this refers to type
 	_registerCollision : function(type, component) {
 		//check loaded
@@ -1308,7 +1316,10 @@ rollbackgameengine.components.collision = {
 
 rollbackgameengine.components.spritemap = {
 	loadType : function(type, options) {
-		//create animation
+		//save url
+		type._imagesrc = options.source;
+
+		//create animation object
 		type._spritemapAnimations = {};
 
 		//add to animations
@@ -1329,9 +1340,6 @@ rollbackgameengine.components.spritemap = {
 	},
 
 	loadEntity : function(entity, options) {
-		//save url
-		entity.imagesrc = options.source;
-
 		//set up variables
 		entity._spritemapAnimation = null;
 		entity._spritemapAnimationPosition = 0;
@@ -1373,7 +1381,7 @@ rollbackgameengine.components.spritemap = {
 		//create image
 		if(!entity.image) {
 			entity.image = new Image();
-			entity.image.src = entity.imagesrc;
+			entity.image.src = entity.type._imagesrc;
 		}
 
 		//hack determine loaded
@@ -1414,7 +1422,6 @@ rollbackgameengine.components.spritemap = {
 
 	rollback : function(entity1, entity2) {
 		//rollback values
-		entity1.imagesrc = entity2.imagesrc;
 		entity1._spritemapAnimation = entity2._spritemapAnimation;
 		entity1._spritemapAnimationPosition = entity2._spritemapAnimationPosition;
 	},
@@ -1623,6 +1630,9 @@ rollbackgameengine.components.removedAfter = {
 	loadType : function(type, options) {
 		//add default properties
 		type._maxttl = options.frames;
+
+		//save bit size
+		type._ttlBitSize = rollbackgameengine.networking.calculateUnsignedIntegerBitSize(type._maxttl);
 	},
 
 	loadEntity : function(entity, options) {
@@ -1651,11 +1661,11 @@ rollbackgameengine.components.removedAfter = {
 	},
 
 	encode : function(entity, outgoingMessage) {
-		outgoingMessage.addUnsignedInteger(entity._ttl, rollbackgameengine.networking.calculateUnsignedIntegerBitSize(entity.type._maxttl));
+		outgoingMessage.addUnsignedInteger(entity._ttl, entity.type._ttlBitSize);
 	},
 
 	decode : function(entity, incomingMessage) {
-		entity._ttl = incomingMessage.nextUnsignedInteger(rollbackgameengine.networking.calculateUnsignedIntegerBitSize(entity.type._maxttl));
+		entity._ttl = incomingMessage.nextUnsignedInteger(entity.type._ttlBitSize);
 	}
 }
 
@@ -1865,12 +1875,28 @@ rollbackgameengine.World = function(options) {
 	//frame
 	this.frame = 0;
 
+	//factory
+	this.factory = options.factory;
+
 	//declare list of entities
 	this.entitiesList = new rollbackgameengine.datastructures.DoublyLinkedList("prevEntityList", "nextEntityList"); //used for traversal in update/render/rollback
 	this.entitiesDictionary = {}; //used for quick lookup in add/recycle/remove
 
 	//collisions
-	this.collisions = new rollbackgameengine.datastructures.SinglyLinkedList(); //types
+	var shouldCreateCollisionList = true;
+	if(this.factory) {
+		//store collisions in factory
+		if(!this.factory._collisions) {
+			this.factory._collisions = new rollbackgameengine.datastructures.SinglyLinkedList(); //types
+			var collisionList = this.factory._collisions;
+		}else {
+			shouldCreateCollisionList = false;
+		}
+	}else {
+		//store collisions in world
+		this.collisions = new rollbackgameengine.datastructures.SinglyLinkedList(); //types
+		var collisionList = this.collisions;
+	}
 
 	//helper linked lists
 	this.toAdd = new rollbackgameengine.datastructures.SinglyLinkedList();
@@ -2024,7 +2050,7 @@ rollbackgameengine.World = function(options) {
 		}
 
 		//add collisions if able
-		if(typeof type._collisionMap !== 'undefined') {
+		if(shouldCreateCollisionList && typeof type._collisionMap !== 'undefined') {
 			//loop through types
 			current = this.entitiesList.head;
 			while(current) {
@@ -2034,7 +2060,7 @@ rollbackgameengine.World = function(options) {
 					found = false;
 
 					//loop through collisions
-					currentCollision = this.collisions.head;
+					currentCollision = collisionList.head;
 					while(currentCollision) {
 						//check found
 						if(currentCollision.obj.type1 === type && currentCollision.obj.type2 === current.type || currentCollision.obj.type1 === current.type && currentCollision.obj.type2 === type) {
@@ -2048,7 +2074,7 @@ rollbackgameengine.World = function(options) {
 
 					//add collisions
 					if(!found) {
-						this.collisions.add({type1:type, type2:current.type});
+						collisionList.add({type1:type, type2:current.type});
 					}
 				}
 
@@ -2132,14 +2158,14 @@ rollbackgameengine.World.prototype.updateLists = function() {
 		//pop
 		entity = this.toAdd.pop();
 
-		//set world
-		entity.world = this;
-
 		//add to list
 		this.entitiesDictionary[entity.type].add(entity);
 
-		//addedToWorld
-		entity.addedToWorld();
+		//world
+		if(!entity.world) {
+			entity.world = this;
+			entity.addedToWorld();
+		}
 	}
 
 	//recycle
@@ -2153,11 +2179,11 @@ rollbackgameengine.World.prototype.updateLists = function() {
 		//add to pool
 		rollbackgameengine.pool.add(entity.type, entity);
 
-		//removedFromWorld
-		entity.removedFromWorld();
-
-		//remove world
-		entity.world = null;
+		//world
+		if(entity.world) {
+			entity.removedFromWorld();
+			entity.world = null;
+		}
 	}
 
 	//remove
@@ -2235,9 +2261,18 @@ rollbackgameengine.World.prototype._handleCollision = function(entity1, entity2)
 	entity2.didCollide(entity1);
 };
 
-rollbackgameengine.World.prototype.updateCollisions = function() {
+//UPDATE
+
+rollbackgameengine.World.prototype._updateCollisions = function() {
 	//declare variables
-	var currentCollision = this.collisions.head;
+	var currentCollision = null;
+	if(this.factory) {
+		//use factory list
+		currentCollision = this.factory._collisions.head;
+	}else {
+		//use world list
+		currentCollision = this.collisions.head;
+	}
 
 	//loop through collisions
 	while(currentCollision) {
@@ -2248,8 +2283,6 @@ rollbackgameengine.World.prototype.updateCollisions = function() {
 		currentCollision = currentCollision.next;
 	}
 };
-
-//UPDATE
 
 rollbackgameengine.World.prototype._updateEntities = function() {
 	//declare variables
@@ -2279,7 +2312,7 @@ rollbackgameengine.World.prototype.update = function() {
 	//frame check
 	if(this.frame >= 0) {
 		//update collisions
-		this.updateCollisions();
+		this._updateCollisions();
 
 		//update lists
 		this.updateLists();
@@ -2450,7 +2483,6 @@ rollbackgameengine.World.prototype.encode = function(outgoingMessage) {
 	}
 };
 
-//todo - create and recycle need to NOT activate addedToWorld and removedFromWorld
 rollbackgameengine.World.prototype.decode = function(incomingMessage) {
 	//decode processors
 	for(var i=0, j=this.processors.length; i<j; i++) {
@@ -2491,6 +2523,7 @@ rollbackgameengine.World.prototype.decode = function(incomingMessage) {
 				while(currentInnerList) {
 					//recycle
 					this.recycleEntity(currentInnerList);
+					currentInnerList.world = null; //hack prevents removedFromWorld call
 
 					//increment
 					currentInnerList = currentInnerList.nextEntity;
@@ -2514,9 +2547,9 @@ rollbackgameengine.World.prototype.decode = function(incomingMessage) {
 					}else {
 						//new
 
-						//create new - todo fix this as doing it this way can cause an unwanted addedToWorld call
+						//create new
 						temp = this.addEntity(currentOuterList.type);
-						this.updateLists(); //temp hack - not good enough since if addedToWorld creates another entity, this will cause it
+						temp.world = this; //hack prevents addedToWorld call
 
 						//decode
 						temp.decode(incomingMessage);
@@ -2527,6 +2560,7 @@ rollbackgameengine.World.prototype.decode = function(incomingMessage) {
 				while(currentInnerList) {
 					//recycle
 					this.recycleEntity(currentInnerList);
+					currentInnerList.world = null; //hack prevents removedFromWorld call
 
 					//increment
 					currentInnerList = currentInnerList.nextEntity;

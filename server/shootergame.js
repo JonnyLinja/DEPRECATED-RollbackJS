@@ -264,7 +264,10 @@ shooter.entities.wall = {
 shooter.gameFactory = {
 	create : function() {
 		//create world
-		var world = new rollbackgameengine.World({types:[shooter.entities.bullet, shooter.entities.alien, shooter.entities.human, shooter.entities.explosion, shooter.entities.wall]});
+		var world = new rollbackgameengine.World({
+			factory : this,
+			types : [shooter.entities.bullet, shooter.entities.alien, shooter.entities.human, shooter.entities.explosion, shooter.entities.wall]
+		});
 
 		//walls
 		var top = world.addEntity(shooter.entities.wall);
@@ -427,7 +430,7 @@ shooter.commands.CommandProcessor.prototype.update = function(command) {
 		this.player.y -= 5;
 		isMoving = true;
 	}else if(command.s && !command.w) {
-		this.player.y += 5;
+		this.player.y += 4;
 		isMoving = true;
 	}
 
