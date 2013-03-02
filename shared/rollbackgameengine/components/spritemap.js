@@ -7,7 +7,10 @@
 
 rollbackgameengine.components.spritemap = {
 	loadType : function(type, options) {
-		//create animation
+		//save url
+		type._imagesrc = options.source;
+
+		//create animation object
 		type._spritemapAnimations = {};
 
 		//add to animations
@@ -28,9 +31,6 @@ rollbackgameengine.components.spritemap = {
 	},
 
 	loadEntity : function(entity, options) {
-		//save url
-		entity.imagesrc = options.source;
-
 		//set up variables
 		entity._spritemapAnimation = null;
 		entity._spritemapAnimationPosition = 0;
@@ -72,7 +72,7 @@ rollbackgameengine.components.spritemap = {
 		//create image
 		if(!entity.image) {
 			entity.image = new Image();
-			entity.image.src = entity.imagesrc;
+			entity.image.src = entity.type._imagesrc;
 		}
 
 		//hack determine loaded
@@ -113,7 +113,6 @@ rollbackgameengine.components.spritemap = {
 
 	rollback : function(entity1, entity2) {
 		//rollback values
-		entity1.imagesrc = entity2.imagesrc;
 		entity1._spritemapAnimation = entity2._spritemapAnimation;
 		entity1._spritemapAnimationPosition = entity2._spritemapAnimationPosition;
 	},
