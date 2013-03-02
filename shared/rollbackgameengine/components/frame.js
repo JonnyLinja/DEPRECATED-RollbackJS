@@ -121,7 +121,7 @@ rollbackgameengine.components.frame = {
 
 	//this refers to entity
 	_center : function(x, y) {
-		this.x = x - Math.floor(this.width * 0.5);
-		this.y = y - Math.floor(this.height * 0.5);
+		this.x = x - ~~(this.width * 0.5);
+		this.y = y - ~~(this.height * 0.5);
 	}
 }
