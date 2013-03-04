@@ -5,7 +5,7 @@
 // so less focus on garbage collection
 //==================================================//
 
-rollbackgameengine.networking.VariableMessage = function(byteSize) {
+rollbackgameengine.networking.VariableMessage = function() {
 	this.bitSize = 0;
 	this.inputs = new rollbackgameengine.datastructures.SinglyLinkedList();
 };

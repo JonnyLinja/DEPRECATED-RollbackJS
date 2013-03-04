@@ -163,7 +163,22 @@ rollbackgameengine.networking.IncomingMessage.prototype.nextUnsignedNumber = fun
 		return parseFloat(intString + '.' + decimalString);
 	}else {
 		//variable length
-		return parseFloat(this.nextUnsignedInteger() + "." + this.nextUnsignedInteger());
+		var int = this.nextUnsignedInteger();
+		var decimal = this.nextUnsignedInteger();
+
+		//decimal check
+		if(precision > 1 && decimal > 0) {
+			var decimalString = decimal + "";
+			var check = Math.pow(10, precision-1);
+			while(decimal < check) {
+				decimal *= 10;
+				decimalString = "0" + decimalString;
+			}
+			return parseFloat(int + "." + decimalString);
+		}
+
+		//return
+		return parseFloat(int + "." + decimal);
 	}
 };
 

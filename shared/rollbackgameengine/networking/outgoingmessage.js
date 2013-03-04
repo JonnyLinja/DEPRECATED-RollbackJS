@@ -192,13 +192,21 @@ rollbackgameengine.networking.OutgoingMessage.prototype.addUnsignedNumber = func
 		this.addUnsignedInteger(number);
 
 		//add decimal part - uses strings to guarantee accuracy
-		if(numberString.indexOf('.') === -1) {
+		var index = numberString.indexOf('.');
+		if(index === -1) {
 			//no decimal
 			this.addUnsignedInteger(0); //kind of a waste of bits, but no choice
 		}else {
 			//has decimal
 			if(typeof precision !== 'undefined') {
 				//use precision
+
+				//add extra 0s
+				while(numberString.length-1-index < precision) {
+					numberString += "0";
+				}
+
+				//add number
 				this.addUnsignedInteger(parseInt(numberString.replace(/[0-9]+\./g,'').substring(0, precision)));
 			}else {
 				//use full value - dangerous

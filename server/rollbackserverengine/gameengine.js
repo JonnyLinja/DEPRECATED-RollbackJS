@@ -367,7 +367,22 @@ rollbackgameengine.networking.IncomingMessage.prototype.nextUnsignedNumber = fun
 		return parseFloat(intString + '.' + decimalString);
 	}else {
 		//variable length
-		return parseFloat(this.nextUnsignedInteger() + "." + this.nextUnsignedInteger());
+		var int = this.nextUnsignedInteger();
+		var decimal = this.nextUnsignedInteger();
+
+		//decimal check
+		if(precision > 1 && decimal > 0) {
+			var decimalString = decimal + "";
+			var check = Math.pow(10, precision-1);
+			while(decimal < check) {
+				decimal *= 10;
+				decimalString = "0" + decimalString;
+			}
+			return parseFloat(int + "." + decimalString);
+		}
+
+		//return
+		return parseFloat(int + "." + decimal);
 	}
 };
 
@@ -591,13 +606,21 @@ rollbackgameengine.networking.OutgoingMessage.prototype.addUnsignedNumber = func
 		this.addUnsignedInteger(number);
 
 		//add decimal part - uses strings to guarantee accuracy
-		if(numberString.indexOf('.') === -1) {
+		var index = numberString.indexOf('.');
+		if(index === -1) {
 			//no decimal
 			this.addUnsignedInteger(0); //kind of a waste of bits, but no choice
 		}else {
 			//has decimal
 			if(typeof precision !== 'undefined') {
 				//use precision
+
+				//add extra 0s
+				while(numberString.length-1-index < precision) {
+					numberString += "0";
+				}
+
+				//add number
 				this.addUnsignedInteger(parseInt(numberString.replace(/[0-9]+\./g,'').substring(0, precision)));
 			}else {
 				//use full value - dangerous
@@ -639,7 +662,7 @@ rollbackgameengine.networking.OutgoingMessage.prototype.addFinalUnsignedInteger 
 // so less focus on garbage collection
 //==================================================//
 
-rollbackgameengine.networking.VariableMessage = function(byteSize) {
+rollbackgameengine.networking.VariableMessage = function() {
 	this.bitSize = 0;
 	this.inputs = new rollbackgameengine.datastructures.SinglyLinkedList();
 };
@@ -1213,6 +1236,8 @@ rollbackgameengine.components.frame = {
 		//rollback values
 		entity1._x = entity2._x;
 		entity1._y = entity2._y;
+
+		//todo - determine if needed
 		//entity1.width = entity2.width;
 		//entity1.height = entity2.height;
 		//entity1.moveX = entity2.moveX;

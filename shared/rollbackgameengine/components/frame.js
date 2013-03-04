@@ -61,6 +61,8 @@ rollbackgameengine.components.frame = {
 		//rollback values
 		entity1._x = entity2._x;
 		entity1._y = entity2._y;
+
+		//todo - determine if needed
 		//entity1.width = entity2.width;
 		//entity1.height = entity2.height;
 		//entity1.moveX = entity2.moveX;
